@@ -1,19 +1,21 @@
-FROM php:8.2-apache
+FROM php:8.2-fpm
 
-# Cài extension cần thiết
+# Cài các package Laravel cần
 RUN apt-get update && apt-get install -y \
-    libzip-dev zip unzip libonig-dev libxml2-dev \
-    && docker-php-ext-install pdo pdo_mysql zip
+    git unzip curl libzip-dev zip libpng-dev libonig-dev libxml2-dev \
+    && docker-php-ext-install pdo_mysql zip
 
 # Cài Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy toàn bộ mã nguồn Laravel
-COPY . /var/www/html
+# Copy project vào container
+WORKDIR /var/www
+COPY . .
 
-# Phân quyền thư mục
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# Cài Laravel + khởi động
+RUN composer install \
+ && php artisan config:clear \
+ && php artisan key:generate
 
-# Bật mod_rewrite để Laravel hoạt động đúng route
-RUN a2enmod rewrite
+EXPOSE 10000
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=10000"]
