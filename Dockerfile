@@ -1,31 +1,36 @@
-# Base image PHP + Apache
+# Stage 1: Use Composer image to install dependencies
+FROM composer:2 AS composer-stage
+
+WORKDIR /app
+COPY . .
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Stage 2: Apache + PHP
 FROM php:8.2-apache
 
-# Set working directory
-WORKDIR /var/www/laravel
+# Cài thư viện cần thiết
+RUN apt-get update && apt-get install -y \
+    unzip zip sqlite3 libzip-dev libonig-dev curl \
+    && docker-php-ext-install pdo pdo_sqlite zip
 
-# Copy code vào Docker image
-COPY . .
-
-# Bật mod_rewrite của Apache
+# Enable mod_rewrite
 RUN a2enmod rewrite
 
-# Cài PHP extension & Composer
-RUN apt-get update && apt-get install -y unzip zip curl libzip-dev sqlite3 \
-    && docker-php-ext-install pdo pdo_mysql pdo_sqlite zip \
-    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+# Tạo file SQLite (nếu chưa có)
+RUN mkdir -p /var/www/laravel/database && touch /var/www/laravel/database/database.sqlite
 
-# Tạo file SQLite nếu chưa có
-RUN mkdir -p database && touch database/database.sqlite
+# Set working dir & copy code
+WORKDIR /var/www/laravel
+COPY --from=composer-stage /app /var/www/laravel
 
-# Phân quyền cho Laravel
+# Fix permission
 RUN chown -R www-data:www-data storage bootstrap/cache database
 
-# Sửa Apache root để dùng thư mục public
+# Trỏ Apache về public/
 RUN sed -i 's|/var/www/html|/var/www/laravel/public|g' /etc/apache2/sites-available/000-default.conf
 
-# Chạy Composer khi container start lần đầu (sẽ chạy sau khi có ENV & database)
-CMD composer install --no-dev --optimize-autoloader --no-interaction \
-    && php artisan config:clear \
-    && php artisan key:generate \
-    && apache2-foreground
+# Laravel artisan setup
+RUN php artisan config:clear && php artisan key:generate
+
+EXPOSE 80
+CMD ["apache2-foreground"]
