@@ -1,21 +1,29 @@
-FROM php:8.2-fpm
+# Base image
+FROM php:8.2-cli
 
-# Cài các package Laravel cần
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    git unzip curl libzip-dev zip libpng-dev libonig-dev libxml2-dev \
+    git curl zip unzip libzip-dev libpng-dev libonig-dev libxml2-dev \
     && docker-php-ext-install pdo_mysql zip
 
-# Cài Composer
+# Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy project vào container
+# Set working directory
 WORKDIR /var/www
+
+# Copy entire Laravel project
 COPY . .
 
-# Cài Laravel + khởi động
-RUN composer install \
- && php artisan config:clear \
- && php artisan key:generate
+# Set permissions
+RUN chmod -R 775 storage bootstrap/cache
 
+# Install PHP dependencies
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+
+# Generate Laravel APP_KEY and clear config cache
+RUN php artisan config:clear && php artisan key:generate
+
+# Expose port & run server
 EXPOSE 10000
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=10000"]
