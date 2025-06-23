@@ -1,29 +1,34 @@
 # Base image
 FROM php:8.2-cli
 
-# Install system dependencies
+# Create app directory
+WORKDIR /app
+
+# Install system deps + PHP extensions
 RUN apt-get update && apt-get install -y \
-    git curl zip unzip libzip-dev libpng-dev libonig-dev libxml2-dev \
-    && docker-php-ext-install pdo_mysql zip
+    zip unzip curl libzip-dev libpng-dev libonig-dev libxml2-dev \
+    && docker-php-ext-install pdo pdo_mysql zip
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Copy composer + install deps
+COPY composer.json composer.lock ./
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+RUN composer install --no-dev --prefer-dist --no-interaction
 
-# Set working directory
-WORKDIR /var/www
-
-# Copy entire Laravel project
+# Copy app files
 COPY . .
 
-# Set permissions
+# Laravel permissions
 RUN chmod -R 775 storage bootstrap/cache
 
-# Install PHP dependencies
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+# Copy .env
+RUN cp .env.example .env
 
-# Generate Laravel APP_KEY and clear config cache
-RUN php artisan config:clear && php artisan key:generate
+# Generate app key
+RUN php artisan config:clear && \
+    php artisan key:generate
 
-# Expose port & run server
+# Expose port
 EXPOSE 10000
+
+# Start Laravel
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=10000"]
