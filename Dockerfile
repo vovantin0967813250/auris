@@ -29,7 +29,9 @@ RUN sed -i 's|/var/www/html|/var/www/laravel/public|g' /etc/apache2/sites-availa
 # Chạy artisan khi container khởi động
 CMD php artisan config:clear && \
     php artisan key:generate && \
+    php artisan migrate --force && \
     apache2-foreground
+
 
 # Mở port 80
 EXPOSE 80
