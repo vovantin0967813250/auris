@@ -85,7 +85,7 @@
 
 <div class="card shadow mb-4">
     <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-        <h6 class="m-0 font-weight-bold text-primary">
+        <h6 class="m-0 font-weight-bold text-primary font-size-14">
             <i class="fas fa-box me-2"></i>Danh sách sản phẩm
         </h6>
         <a href="<?php echo e(route('products.create')); ?>" class="btn btn-primary">
@@ -151,23 +151,23 @@
             <table class="table table-bordered" width="100%" cellspacing="0">
                 <thead>
                     <tr>
-                        <th>Mã SP</th>
-                        <th>Hình ảnh</th>
-                        <th>Tên sản phẩm</th>
-                        <th>Giá thuê</th>
-                        <th>Ngày mua</th>
-                        <th>Trạng thái</th>
+                        <th class="text-center">Mã SP</th>
+                        <th class="text-center">Hình ảnh</th>
+                        <th class="text-center">Tên sản phẩm</th>
+                        <th class="text-center">Giá cho thuê</th>
+                        <th class="text-center">Ngày mua</th>
+                        <th class="text-center">Trạng thái</th>
                         <th class="text-center">Số lần thuê</th>
-                        <th>Thao tác</th>
+                        <th class="text-center">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <tr>
-                        <td>
+                        <td class="text-center">
                             <strong><?php echo e($product->product_code); ?></strong>
                         </td>
-                        <td>
+                        <td class="text-center" style="width: 150px;">
                             <?php if($product->image): ?>
                                 <img src="<?php echo e(asset('storage/' . $product->image)); ?>" 
                                      alt="<?php echo e($product->name); ?>" 
@@ -180,15 +180,15 @@
                                 </div>
                             <?php endif; ?>
                         </td>
-                        <td>
+                        <td class="text-center">
                             <strong><?php echo e($product->name); ?></strong>
                             <?php if($product->description): ?>
                                 <br><small class="text-muted"><?php echo e(Str::limit($product->description, 50)); ?></small>
                             <?php endif; ?>
                         </td>
-                        <td><?php echo e(number_format($product->rental_price)); ?> VNĐ</td>
-                        <td><?php echo e($product->purchase_date->format('d/m/Y')); ?></td>
-                        <td>
+                        <td class="text-center"><?php echo e(number_format($product->rental_price)); ?> VNĐ</td>
+                        <td class="text-center"><?php echo e($product->purchase_date->format('d/m/Y')); ?></td>
+                        <td class="text-center">
                             <?php if($product->status === 'available'): ?>
                                 <span class="badge bg-success">Có sẵn</span>
                             <?php elseif($product->status === 'rented'): ?>
@@ -203,13 +203,13 @@
 
                             </span>
                         </td>
-                        <td>
+                        <td class="text-center">
                             <div class="btn-group" role="group">
-                                <a href="<?php echo e(route('products.edit', $product)); ?>" 
+                                <a  href="<?php echo e(route('products.edit', $product)); ?>" 
                                    class="btn btn-sm btn-outline-primary">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="<?php echo e(route('products.destroy', $product)); ?>" 
+                                <form class="ms-1" action="<?php echo e(route('products.destroy', $product)); ?>" 
                                       method="POST" 
                                       onsubmit="return confirm('Bạn có chắc muốn xóa sản phẩm này?')"
                                       style="display: inline;">

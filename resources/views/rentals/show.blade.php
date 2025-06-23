@@ -32,7 +32,15 @@
                 @endif
                 <hr>
                 <p><strong>Tổng tiền thuê:</strong> {{ number_format($rental->total_price) }} VNĐ</p>
-                <p><strong>Tiền cọc:</strong> {{ number_format($rental->deposit_amount) }} VNĐ</p>
+                <p><strong>Tiền cọc:</strong> 
+                    @if($rental->deposit_type === 'money')
+                        {{ number_format($rental->deposit_value) }} VNĐ
+                    @elseif($rental->deposit_type === 'idcard')
+                        {{ $rental->deposit_value }} (CCCD)
+                    @else
+                        Không có
+                    @endif
+                </p>
                 @if($rental->notes)
                 <p><strong>Ghi chú:</strong> {{ $rental->notes }}</p>
                 @endif

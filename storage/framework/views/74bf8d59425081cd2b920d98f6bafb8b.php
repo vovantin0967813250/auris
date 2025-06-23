@@ -105,8 +105,23 @@
                         <strong id="total-price-display">0 VNĐ</strong>
                     </div>
                     <div class="mb-3">
-                        <label for="deposit_amount" class="form-label">Tiền cọc</label>
-                        <input type="number" class="form-control" id="deposit_amount" name="deposit_amount" value="0" min="0" step="1000">
+                        <label for="deposit_type" class="form-label">Loại cọc</label>
+                        <select class="form-select" id="deposit_type" name="deposit_type">
+                            <option value="money" selected>Cọc tiền</option>
+                            <option value="idcard">Cọc căn cước công dân</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="deposit_money_group">
+                        <label for="deposit_money_display" class="form-label">Số tiền cọc</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="deposit_money_display" value="0">
+                            <input type="hidden" name="deposit_money" id="deposit_money" value="0">
+                            <span class="input-group-text">VNĐ</span>
+                        </div>
+                    </div>
+                    <div class="mb-3 d-none" id="deposit_idcard_group">
+                        <label for="deposit_idcard" class="form-label">Tên/ID căn cước công dân</label>
+                        <input type="text" class="form-control" id="deposit_idcard" name="deposit_idcard" placeholder="Nhập tên hoặc số căn cước">
                     </div>
                     <div class="mb-3">
                         <label for="notes" class="form-label">Ghi chú</label>
@@ -263,6 +278,41 @@ document.addEventListener('DOMContentLoaded', function () {
             alert('Vui lòng thêm ít nhất một sản phẩm vào đơn thuê.');
         }
     });
+
+    // --- Deposit Type Logic ---
+    const depositType = document.getElementById('deposit_type');
+    const depositMoneyGroup = document.getElementById('deposit_money_group');
+    const depositIdCardGroup = document.getElementById('deposit_idcard_group');
+    const depositMoneyDisplay = document.getElementById('deposit_money_display');
+    const depositMoneyHidden = document.getElementById('deposit_money');
+
+    // Định dạng số tiền cọc
+    const formatter = new Intl.NumberFormat('vi-VN');
+    function formatDepositMoney() {
+        const rawValue = depositMoneyDisplay.value.replace(/[^0-9]/g, '');
+        depositMoneyHidden.value = rawValue;
+        depositMoneyDisplay.value = rawValue ? formatter.format(rawValue) : '';
+    }
+    depositMoneyDisplay.addEventListener('input', formatDepositMoney);
+    // Format initial value
+    formatDepositMoney();
+
+    // Ẩn/hiện input theo loại cọc
+    function updateDepositInput() {
+        if (depositType.value === 'money') {
+            depositMoneyGroup.classList.remove('d-none');
+            depositIdCardGroup.classList.add('d-none');
+            depositMoneyDisplay.required = true;
+            document.getElementById('deposit_idcard').required = false;
+        } else {
+            depositMoneyGroup.classList.add('d-none');
+            depositIdCardGroup.classList.remove('d-none');
+            depositMoneyDisplay.required = false;
+            document.getElementById('deposit_idcard').required = true;
+        }
+    }
+    depositType.addEventListener('change', updateDepositInput);
+    updateDepositInput();
 
 });
 </script>

@@ -116,7 +116,7 @@
                         <th>Ngày thuê</th>
                         <th>Ngày trả dự kiến</th>
                         <th>Tổng tiền</th>
-                        <th>Tiền cọc</th>
+                        <th>Loại cọc</th>
                         <th>Trạng thái</th>
                         <th>Thao tác</th>
                     </tr>
@@ -150,7 +150,15 @@
                             <?php endif; ?>
                         </td>
                         <td><?php echo e(number_format($rental->total_price)); ?> VNĐ</td>
-                        <td><?php echo e(number_format($rental->deposit_amount)); ?> VNĐ</td>
+                        <td>
+                            <?php if($rental->deposit_type === 'money'): ?>
+                                <?php echo e(number_format($rental->deposit_value)); ?> VNĐ
+                            <?php elseif($rental->deposit_type === 'idcard'): ?>
+                                <span class="badge bg-secondary">CCCD</span>
+                            <?php else: ?>
+                                0 VNĐ
+                            <?php endif; ?>
+                        </td>
                         <td>
                             <?php if($rental->isOverdue()): ?>
                                 <span class="badge bg-danger">Quá hạn</span>

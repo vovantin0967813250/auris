@@ -32,7 +32,15 @@
                 <?php endif; ?>
                 <hr>
                 <p><strong>Tổng tiền thuê:</strong> <?php echo e(number_format($rental->total_price)); ?> VNĐ</p>
-                <p><strong>Tiền cọc:</strong> <?php echo e(number_format($rental->deposit_amount)); ?> VNĐ</p>
+                <p><strong>Tiền cọc:</strong> 
+                    <?php if($rental->deposit_type === 'money'): ?>
+                        <?php echo e(number_format($rental->deposit_value)); ?> VNĐ
+                    <?php elseif($rental->deposit_type === 'idcard'): ?>
+                        <?php echo e($rental->deposit_value); ?> (CCCD)
+                    <?php else: ?>
+                        Không có
+                    <?php endif; ?>
+                </p>
                 <?php if($rental->notes): ?>
                 <p><strong>Ghi chú:</strong> <?php echo e($rental->notes); ?></p>
                 <?php endif; ?>

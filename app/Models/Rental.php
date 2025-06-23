@@ -19,7 +19,9 @@ class Rental extends Model
         'total_price',
         'deposit_amount',
         'status',
-        'notes'
+        'notes',
+        'deposit_type',
+        'deposit_value',
     ];
 
     protected $casts = [

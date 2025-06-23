@@ -42,9 +42,20 @@ class RentalController extends Controller
             'products' => 'required|array|min:1',
             'products.*' => 'required|integer|exists:products,id',
             'total_price' => 'required|numeric|min:0',
-            'deposit_amount' => 'nullable|numeric|min:0',
+            'deposit_type' => 'required|in:money,idcard',
+            'deposit_money' => 'nullable|numeric|min:0',
+            'deposit_idcard' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
         ]);
+
+        // Xác định giá trị cọc
+        $depositType = $validated['deposit_type'];
+        $depositValue = null;
+        if ($depositType === 'money') {
+            $depositValue = $validated['deposit_money'] ?? '0';
+        } elseif ($depositType === 'idcard') {
+            $depositValue = $validated['deposit_idcard'] ?? '';
+        }
 
         try {
             DB::beginTransaction();
@@ -69,7 +80,8 @@ class RentalController extends Controller
                 'rental_date' => $validated['rental_date'],
                 'expected_return_date' => $validated['expected_return_date'],
                 'total_price' => $validated['total_price'],
-                'deposit_amount' => $validated['deposit_amount'] ?? 0,
+                'deposit_type' => $depositType,
+                'deposit_value' => $depositValue,
                 'notes' => $validated['notes'],
                 'status' => 'active',
             ]);
