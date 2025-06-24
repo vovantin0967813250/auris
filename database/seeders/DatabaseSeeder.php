@@ -39,11 +39,11 @@ class DatabaseSeeder extends Seeder
             'deposit_price' => 100000,
             'purchase_price' => 800000, 'purchase_date' => '2024-02-01', 'status' => 'available'
         ]);
-         $p4 = Product::create([
+        $p4 = Product::create([
             'product_code' => 'VA004', 'name' => 'Váy dự tiệc xanh', 'rental_price' => 250000, 
             'deposit_price' => 150000,
             'purchase_price' => 1200000, 'purchase_date' => '2024-02-10', 'status' => 'available'
-        ]);
+        ]); 
 
         // Create sample customers
         $c1 = Customer::create(['name' => 'Nguyễn Thị Anh', 'phone' => '0901234567']);
