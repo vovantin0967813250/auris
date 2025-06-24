@@ -82,6 +82,9 @@
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </p>
                             <p class="mb-1"><strong>Ngày trả:</strong> <?php echo e($rental->expected_return_date->format('d/m/Y')); ?></p>
+                            <p class="mb-1"><strong>Tiền thuê:</strong> <?php echo e(number_format($rental->rental_fee)); ?> VNĐ</p>
+                            <p class="mb-1"><strong>Cọc:</strong> <?php echo e($rental->getDepositInfo()); ?></p>
+                            <p class="mb-1"><strong>Tổng trả:</strong> <?php echo e(number_format($rental->total_paid)); ?> VNĐ</p>
                             <?php if($rental->isOverdue()): ?>
                                 <p class="mb-2 text-danger"><strong>Quá hạn:</strong> <?php echo e($rental->getOverdueDays()); ?> ngày</p>
                             <?php endif; ?>
@@ -115,8 +118,9 @@
                         <th>Khách hàng</th>
                         <th>Ngày thuê</th>
                         <th>Ngày trả dự kiến</th>
-                        <th>Tổng tiền</th>
-                        <th>Loại cọc</th>
+                        <th>Tiền thuê</th>
+                        <th>Cọc</th>
+                        <th>Tổng trả</th>
                         <th>Trạng thái</th>
                         <th>Thao tác</th>
                     </tr>
@@ -149,15 +153,20 @@
                                 <br><small class="text-danger">Quá <?php echo e($rental->getOverdueDays()); ?> ngày</small>
                             <?php endif; ?>
                         </td>
-                        <td><?php echo e(number_format($rental->total_price)); ?> VNĐ</td>
                         <td>
-                            <?php if($rental->deposit_type === 'money'): ?>
-                                <?php echo e(number_format($rental->deposit_value)); ?> VNĐ
-                            <?php elseif($rental->deposit_type === 'idcard'): ?>
-                                <span class="badge bg-secondary">CCCD</span>
+                            <strong><?php echo e(number_format($rental->rental_fee)); ?> VNĐ</strong>
+                        </td>
+                        <td>
+                            <?php if($rental->hasMoneyDeposit()): ?>
+                                <span class="badge bg-info"><?php echo e(number_format($rental->deposit_amount)); ?> VNĐ</span>
+                            <?php elseif($rental->hasIdCardDeposit()): ?>
+                                <span class="badge bg-secondary">CCCD: <?php echo e($rental->deposit_note); ?></span>
                             <?php else: ?>
-                                0 VNĐ
+                                <span class="text-muted">Không có</span>
                             <?php endif; ?>
+                        </td>
+                        <td>
+                            <strong class="text-primary"><?php echo e(number_format($rental->total_paid)); ?> VNĐ</strong>
                         </td>
                         <td>
                             <?php if($rental->isOverdue()): ?>

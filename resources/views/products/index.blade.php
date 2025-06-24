@@ -125,6 +125,7 @@
                                     </div>
                                     <p class="mb-1 text-muted"><strong>Mã:</strong> {{ $product->product_code }}</p>
                                     <p class="mb-1"><strong>Giá thuê:</strong> {{ number_format($product->rental_price) }} VNĐ</p>
+                                    <p class="mb-1"><strong>Giá cọc:</strong> {{ number_format($product->deposit_price) }} VNĐ</p>
                                     <p class="mb-2"><strong>Lượt thuê:</strong> <span class="badge bg-primary rounded-pill">{{ $product->rentals_count }}</span></p>
                                     
                                     <!-- Actions -->
@@ -155,6 +156,7 @@
                         <th class="text-center">Hình ảnh</th>
                         <th class="text-center">Tên sản phẩm</th>
                         <th class="text-center">Giá cho thuê</th>
+                        <th class="text-center">Giá cọc</th>
                         <th class="text-center">Ngày mua</th>
                         <th class="text-center">Trạng thái</th>
                         <th class="text-center">Số lần thuê</th>
@@ -187,6 +189,7 @@
                             @endif
                         </td>
                         <td class="text-center">{{ number_format($product->rental_price) }} VNĐ</td>
+                        <td class="text-center">{{ number_format($product->deposit_price) }} VNĐ</td>
                         <td class="text-center">{{ $product->purchase_date->format('d/m/Y') }}</td>
                         <td class="text-center">
                             @if($product->status === 'available')
@@ -198,23 +201,24 @@
                             @endif
                         </td>
                         <td class="text-center">
-                            <span class="badge bg-primary rounded-pill" style="font-size: 0.9em;">
-                                {{ $product->rentals_count }}
-                            </span>
+                            <span class="badge bg-primary rounded-pill">{{ $product->rentals_count }}</span>
                         </td>
                         <td class="text-center">
                             <div class="btn-group" role="group">
-                                <a  href="{{ route('products.edit', $product) }}" 
-                                   class="btn btn-sm btn-outline-primary">
+                                <a href="{{ route('products.edit', $product) }}" 
+                                   class="btn btn-sm btn-outline-primary"
+                                   data-bs-toggle="tooltip" title="Chỉnh sửa">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form class="ms-1" action="{{ route('products.destroy', $product) }}" 
+                                <form action="{{ route('products.destroy', $product) }}" 
                                       method="POST" 
                                       onsubmit="return confirm('Bạn có chắc muốn xóa sản phẩm này?')"
                                       style="display: inline;">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <button type="submit" 
+                                            class="btn btn-sm btn-outline-danger"
+                                            data-bs-toggle="tooltip" title="Xóa">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
@@ -243,4 +247,14 @@
         @endif
     </div>
 </div>
-@endsection 
+@endsection
+
+@push('scripts')
+<script>
+    // Enable Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>
+@endpush 

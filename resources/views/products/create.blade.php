@@ -63,7 +63,7 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="purchase_price" class="form-label">Giá mua về <span class="text-danger">*</span></label>
                                 <div class="input-group">
@@ -79,7 +79,7 @@
                             </div>
                         </div>
                         
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="rental_price" class="form-label">Giá cho thuê <span class="text-danger">*</span></label>
                                 <div class="input-group">
@@ -95,7 +95,23 @@
                             </div>
                         </div>
                         
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="deposit_price" class="form-label">Giá cọc <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control @error('deposit_price') is-invalid @enderror" 
+                                           id="deposit_price_display" 
+                                           value="{{ old('deposit_price') }}" required>
+                                    <input type="hidden" name="deposit_price" id="deposit_price" value="{{ old('deposit_price') }}">
+                                    <span class="input-group-text">VNĐ</span>
+                                </div>
+                                @error('deposit_price')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="purchase_date" class="form-label">Ngày mua về <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control @error('purchase_date') is-invalid @enderror" 
@@ -130,6 +146,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const purchasePriceHidden = document.getElementById('purchase_price');
     const rentalPriceDisplay = document.getElementById('rental_price_display');
     const rentalPriceHidden = document.getElementById('rental_price');
+    const depositPriceDisplay = document.getElementById('deposit_price_display');
+    const depositPriceHidden = document.getElementById('deposit_price');
 
     const formatter = new Intl.NumberFormat('vi-VN');
 
@@ -159,6 +177,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     formatAndSet(purchasePriceDisplay, purchasePriceHidden);
     formatAndSet(rentalPriceDisplay, rentalPriceHidden);
+    formatAndSet(depositPriceDisplay, depositPriceHidden);
 });
 </script>
 @endpush 

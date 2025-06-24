@@ -41,21 +41,26 @@ class RentalController extends Controller
             'expected_return_date' => 'required|date|after_or_equal:rental_date',
             'products' => 'required|array|min:1',
             'products.*' => 'required|integer|exists:products,id',
-            'total_price' => 'required|numeric|min:0',
+            'rental_fee' => 'required|numeric|min:0', // Tiền thuê
             'deposit_type' => 'required|in:money,idcard',
-            'deposit_money' => 'nullable|numeric|min:0',
-            'deposit_idcard' => 'nullable|string|max:255',
+            'deposit_amount' => 'nullable|numeric|min:0', // Tiền cọc
+            'deposit_note' => 'nullable|string|max:255', // Ghi chú cọc (số CMND)
             'notes' => 'nullable|string',
         ]);
 
         // Xác định giá trị cọc
         $depositType = $validated['deposit_type'];
-        $depositValue = null;
+        $depositAmount = 0;
+        $depositNote = null;
+        
         if ($depositType === 'money') {
-            $depositValue = $validated['deposit_money'] ?? '0';
+            $depositAmount = $validated['deposit_amount'] ?? 0;
         } elseif ($depositType === 'idcard') {
-            $depositValue = $validated['deposit_idcard'] ?? '';
+            $depositNote = $validated['deposit_note'] ?? '';
         }
+
+        // Tính tổng tiền khách phải trả
+        $totalPaid = $validated['rental_fee'] + $depositAmount;
 
         try {
             DB::beginTransaction();
@@ -74,19 +79,26 @@ class RentalController extends Controller
                 }
             }
 
-            // 3. Create the Rental
+            // 3. Calculate total price (sum of all product rental prices)
+            $totalPrice = $productsToRent->sum('rental_price');
+
+            // 4. Create the Rental
             $rental = Rental::create([
                 'customer_id' => $customer->id,
                 'rental_date' => $validated['rental_date'],
                 'expected_return_date' => $validated['expected_return_date'],
-                'total_price' => $validated['total_price'],
+                'total_price' => $totalPrice,
+                'rental_fee' => $validated['rental_fee'],
+                'deposit_amount' => $depositAmount,
                 'deposit_type' => $depositType,
-                'deposit_value' => $depositValue,
+                'deposit_note' => $depositNote,
+                'total_paid' => $totalPaid,
+                'refund_amount' => $depositAmount, // Số tiền sẽ hoàn lại
                 'notes' => $validated['notes'],
                 'status' => 'active',
             ]);
 
-            // 4. Create Rental Items and Update Product Status
+            // 5. Create Rental Items and Update Product Status
             foreach ($productsToRent as $product) {
                 $rental->items()->create([
                     'product_id' => $product->id,
@@ -98,7 +110,7 @@ class RentalController extends Controller
             DB::commit();
 
             return redirect()->route('rentals.index')
-                ->with('success', 'Đơn thuê đã được tạo thành công!');
+                ->with('success', 'Đơn thuê đã được tạo thành công! Tổng tiền: ' . number_format($totalPaid) . ' VNĐ');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -116,11 +128,40 @@ class RentalController extends Controller
         try {
             DB::beginTransaction();
 
-            // Update rental status
-            $rental->update([
-                'actual_return_date' => now(),
-                'status' => 'returned',
-            ]);
+            // Tính số ngày trễ và tiền phạt
+            $actualReturnDate = now();
+            $lateDays = 0;
+            $lateFee = 0;
+            $refundMessage = '';
+
+            // Cập nhật ngày trả thực tế
+            $rental->actual_return_date = $actualReturnDate;
+            $rental->status = 'returned';
+
+            // Tính phạt nếu có
+            $lateDays = $rental->getLateDays();
+            $lateFee = $rental->getLateFee();
+
+            if ($lateDays > 0 && $lateFee > 0) {
+                if ($rental->hasMoneyDeposit()) {
+                    // Trừ vào tiền cọc
+                    $refund = $rental->deposit_amount - $lateFee;
+                    $rental->refund_amount = $refund > 0 ? $refund : 0;
+                    $refundMessage = 'Khách trả trễ ' . $lateDays . ' ngày, đã trừ ' . number_format($lateFee) . ' VNĐ vào tiền cọc. Số tiền hoàn lại: ' . number_format($rental->refund_amount) . ' VNĐ.';
+                } elseif ($rental->hasIdCardDeposit()) {
+                    // Báo khách đóng thêm
+                    $refundMessage = 'Khách trả trễ ' . $lateDays . ' ngày, vui lòng thu thêm ' . number_format($lateFee) . ' VNĐ tiền phạt.';
+                }
+            } else {
+                // Không trễ hạn
+                if ($rental->hasMoneyDeposit()) {
+                    $refundMessage = 'Hoàn lại cọc: ' . number_format($rental->deposit_amount) . ' VNĐ';
+                } elseif ($rental->hasIdCardDeposit()) {
+                    $refundMessage = 'Hoàn lại CMND: ' . $rental->deposit_note;
+                }
+            }
+
+            $rental->save();
 
             // Update status for all products in the rental
             foreach ($rental->products as $product) {
@@ -130,7 +171,7 @@ class RentalController extends Controller
             DB::commit();
 
             return redirect()->route('rentals.index')
-                ->with('success', 'Đã trả hàng thành công cho đơn thuê #' . $rental->id);
+                ->with('success', 'Đã trả hàng thành công cho đơn thuê #' . $rental->id . '. ' . $refundMessage);
 
         } catch (\Exception $e) {
             DB::rollBack();

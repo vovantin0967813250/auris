@@ -31,18 +31,38 @@
                     <p class="text-danger"><strong>Quá hạn:</strong> {{ $rental->getOverdueDays() }} ngày</p>
                 @endif
                 <hr>
-                <p><strong>Tổng tiền thuê:</strong> {{ number_format($rental->total_price) }} VNĐ</p>
-                <p><strong>Tiền cọc:</strong> 
-                    @if($rental->deposit_type === 'money')
-                        {{ number_format($rental->deposit_value) }} VNĐ
-                    @elseif($rental->deposit_type === 'idcard')
-                        {{ $rental->deposit_value }} (CCCD)
-                    @else
-                        Không có
-                    @endif
-                </p>
+                <div class="row">
+                    <div class="col-6">
+                        <p><strong>Tiền thuê:</strong></p>
+                        <p><strong>Cọc:</strong></p>
+                        <p><strong>Tổng trả:</strong></p>
+                        @if($rental->status === 'returned' && $rental->hasMoneyDeposit())
+                        <p><strong>Hoàn lại:</strong></p>
+                        @endif
+                    </div>
+                    <div class="col-6 text-end">
+                        <p class="text-primary">{{ number_format($rental->rental_fee) }} VNĐ</p>
+                        <p>{{ $rental->getDepositInfo() }}</p>
+                        <p class="fw-bold text-success">{{ number_format($rental->total_paid) }} VNĐ</p>
+                        @if($rental->status === 'returned' && $rental->hasMoneyDeposit())
+                        <p class="text-info">{{ number_format($rental->deposit_amount) }} VNĐ</p>
+                        @endif
+                    </div>
+                </div>
                 @if($rental->notes)
+                <hr>
                 <p><strong>Ghi chú:</strong> {{ $rental->notes }}</p>
+                @endif
+                @if($rental->status === 'returned' && $rental->getLateDays() > 0)
+                    <div class="alert alert-warning">
+                        <strong>Khách trả trễ {{ $rental->getLateDays() }} ngày.</strong><br>
+                        Tiền phạt: <strong>{{ number_format($rental->getLateFee()) }} VNĐ</strong><br>
+                        @if($rental->hasMoneyDeposit())
+                            Đã trừ vào tiền cọc. Số tiền hoàn lại: <strong>{{ number_format($rental->refund_amount) }} VNĐ</strong>
+                        @elseif($rental->hasIdCardDeposit())
+                            Vui lòng thu thêm <strong>{{ number_format($rental->getLateFee()) }} VNĐ</strong> từ khách.
+                        @endif
+                    </div>
                 @endif
             </div>
         </div>

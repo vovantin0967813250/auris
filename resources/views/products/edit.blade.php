@@ -6,7 +6,7 @@
 
 @section('content')
 <div class="row justify-content-center">
-    <div class="col-lg-8">
+    <div class="col-lg-12">
         <div class="card shadow">
             <div class="card-header py-3">
                 <h6 class="m-0 font-weight-bold text-primary">
@@ -73,13 +73,14 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="purchase_price" class="form-label">Giá mua về <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <input type="number" class="form-control @error('purchase_price') is-invalid @enderror" 
-                                           id="purchase_price" name="purchase_price" 
-                                           value="{{ old('purchase_price', $product->purchase_price) }}" min="0" step="1000" required>
+                                    <input type="text" class="form-control @error('purchase_price') is-invalid @enderror" 
+                                           id="purchase_price_display" 
+                                           value="{{ old('purchase_price', $product->purchase_price) }}" required>
+                                    <input type="hidden" name="purchase_price" id="purchase_price" value="{{ old('purchase_price', $product->purchase_price) }}">
                                     <span class="input-group-text">VNĐ</span>
                                 </div>
                                 @error('purchase_price')
@@ -88,13 +89,14 @@
                             </div>
                         </div>
                         
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="rental_price" class="form-label">Giá cho thuê <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <input type="number" class="form-control @error('rental_price') is-invalid @enderror" 
-                                           id="rental_price" name="rental_price" 
-                                           value="{{ old('rental_price', $product->rental_price) }}" min="0" step="1000" required>
+                                    <input type="text" class="form-control @error('rental_price') is-invalid @enderror" 
+                                           id="rental_price_display" 
+                                           value="{{ old('rental_price', $product->rental_price) }}" required>
+                                    <input type="hidden" name="rental_price" id="rental_price" value="{{ old('rental_price', $product->rental_price) }}">
                                     <span class="input-group-text">VNĐ</span>
                                 </div>
                                 @error('rental_price')
@@ -103,7 +105,23 @@
                             </div>
                         </div>
                         
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="deposit_price" class="form-label">Giá cọc <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control @error('deposit_price') is-invalid @enderror" 
+                                           id="deposit_price_display" 
+                                           value="{{ old('deposit_price', $product->deposit_price) }}" required>
+                                    <input type="hidden" name="deposit_price" id="deposit_price" value="{{ old('deposit_price', $product->deposit_price) }}">
+                                    <span class="input-group-text">VNĐ</span>
+                                </div>
+                                @error('deposit_price')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="purchase_date" class="form-label">Ngày mua về <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control @error('purchase_date') is-invalid @enderror" 
@@ -129,4 +147,47 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const purchasePriceDisplay = document.getElementById('purchase_price_display');
+    const purchasePriceHidden = document.getElementById('purchase_price');
+    const rentalPriceDisplay = document.getElementById('rental_price_display');
+    const rentalPriceHidden = document.getElementById('rental_price');
+    const depositPriceDisplay = document.getElementById('deposit_price_display');
+    const depositPriceHidden = document.getElementById('deposit_price');
+
+    const formatter = new Intl.NumberFormat('vi-VN');
+
+    function formatAndSet(displayInput, hiddenInput) {
+        // Format initial value if it exists
+        if (displayInput.value) {
+            const rawValue = displayInput.value.replace(/[^0-9]/g, '');
+            hiddenInput.value = rawValue;
+            displayInput.value = formatter.format(rawValue);
+        }
+
+        displayInput.addEventListener('input', function (e) {
+            // Get raw number value by removing non-digit characters
+            const rawValue = e.target.value.replace(/[^0-9]/g, '');
+            
+            // Update hidden input
+            hiddenInput.value = rawValue;
+            
+            // Format for display and update visible input
+            if (rawValue) {
+                displayInput.value = formatter.format(rawValue);
+            } else {
+                displayInput.value = '';
+            }
+        });
+    }
+
+    formatAndSet(purchasePriceDisplay, purchasePriceHidden);
+    formatAndSet(rentalPriceDisplay, rentalPriceHidden);
+    formatAndSet(depositPriceDisplay, depositPriceHidden);
+});
+</script>
+@endpush 

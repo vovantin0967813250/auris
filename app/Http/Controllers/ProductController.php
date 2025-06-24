@@ -35,6 +35,7 @@ class ProductController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'purchase_price' => 'required|numeric|min:0',
             'rental_price' => 'required|numeric|min:0',
+            'deposit_price' => 'required|numeric|min:0',
             'purchase_date' => 'required|date',
         ]);
 
@@ -66,6 +67,7 @@ class ProductController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'purchase_price' => 'required|numeric|min:0',
             'rental_price' => 'required|numeric|min:0',
+            'deposit_price' => 'required|numeric|min:0',
             'purchase_date' => 'required|date',
         ]);
 
@@ -113,7 +115,8 @@ class ProductController extends Controller
             return response()->json([]);
         }
 
-        $products = Product::where(function($query) use ($searchTerm) {
+        $products = Product::select('id', 'product_code', 'name', 'rental_price', 'deposit_price', 'status', 'image')
+            ->where(function($query) use ($searchTerm) {
                 $query->where('product_code', 'LIKE', "%{$searchTerm}%")
                       ->orWhere('name', 'LIKE', "%{$searchTerm}%");
             })

@@ -119,7 +119,7 @@ unset($__errorArgs, $__bag); ?>
                     </div>
 
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="purchase_price" class="form-label">Giá mua về <span class="text-danger">*</span></label>
                                 <div class="input-group">
@@ -149,7 +149,7 @@ unset($__errorArgs, $__bag); ?>
                             </div>
                         </div>
                         
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="rental_price" class="form-label">Giá cho thuê <span class="text-danger">*</span></label>
                                 <div class="input-group">
@@ -179,7 +179,37 @@ unset($__errorArgs, $__bag); ?>
                             </div>
                         </div>
                         
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="deposit_price" class="form-label">Giá cọc <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control <?php $__errorArgs = ['deposit_price'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
+                                           id="deposit_price_display" 
+                                           value="<?php echo e(old('deposit_price')); ?>" required>
+                                    <input type="hidden" name="deposit_price" id="deposit_price" value="<?php echo e(old('deposit_price')); ?>">
+                                    <span class="input-group-text">VNĐ</span>
+                                </div>
+                                <?php $__errorArgs = ['deposit_price'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <div class="invalid-feedback"><?php echo e($message); ?></div>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="purchase_date" class="form-label">Ngày mua về <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control <?php $__errorArgs = ['purchase_date'];
@@ -228,6 +258,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const purchasePriceHidden = document.getElementById('purchase_price');
     const rentalPriceDisplay = document.getElementById('rental_price_display');
     const rentalPriceHidden = document.getElementById('rental_price');
+    const depositPriceDisplay = document.getElementById('deposit_price_display');
+    const depositPriceHidden = document.getElementById('deposit_price');
 
     const formatter = new Intl.NumberFormat('vi-VN');
 
@@ -257,6 +289,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     formatAndSet(purchasePriceDisplay, purchasePriceHidden);
     formatAndSet(rentalPriceDisplay, rentalPriceHidden);
+    formatAndSet(depositPriceDisplay, depositPriceHidden);
 });
 </script>
 <?php $__env->stopPush(); ?> 

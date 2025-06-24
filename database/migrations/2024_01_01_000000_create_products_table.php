@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('image')->nullable(); // Hình ảnh
             $table->decimal('purchase_price', 10, 2); // Giá mua về
             $table->decimal('rental_price', 10, 2); // Giá cho thuê
+            $table->decimal('deposit_price', 10, 2)->default(0); // Giá cọc mặc định
             $table->date('purchase_date'); // Ngày mua về
             $table->enum('status', ['available', 'rented', 'maintenance'])->default('available'); // Trạng thái
             $table->timestamps();

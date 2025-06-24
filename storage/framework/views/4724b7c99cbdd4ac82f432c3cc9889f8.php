@@ -129,11 +129,11 @@ unset($__errorArgs, $__bag); ?>
                     </div>
 
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="purchase_price" class="form-label">Giá mua về <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <input type="number" class="form-control <?php $__errorArgs = ['purchase_price'];
+                                    <input type="text" class="form-control <?php $__errorArgs = ['purchase_price'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -141,8 +141,9 @@ $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>" 
-                                           id="purchase_price" name="purchase_price" 
-                                           value="<?php echo e(old('purchase_price', $product->purchase_price)); ?>" min="0" step="1000" required>
+                                           id="purchase_price_display" 
+                                           value="<?php echo e(old('purchase_price', $product->purchase_price)); ?>" required>
+                                    <input type="hidden" name="purchase_price" id="purchase_price" value="<?php echo e(old('purchase_price', $product->purchase_price)); ?>">
                                     <span class="input-group-text">VNĐ</span>
                                 </div>
                                 <?php $__errorArgs = ['purchase_price'];
@@ -158,11 +159,11 @@ unset($__errorArgs, $__bag); ?>
                             </div>
                         </div>
                         
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="rental_price" class="form-label">Giá cho thuê <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <input type="number" class="form-control <?php $__errorArgs = ['rental_price'];
+                                    <input type="text" class="form-control <?php $__errorArgs = ['rental_price'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -170,8 +171,9 @@ $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>" 
-                                           id="rental_price" name="rental_price" 
-                                           value="<?php echo e(old('rental_price', $product->rental_price)); ?>" min="0" step="1000" required>
+                                           id="rental_price_display" 
+                                           value="<?php echo e(old('rental_price', $product->rental_price)); ?>" required>
+                                    <input type="hidden" name="rental_price" id="rental_price" value="<?php echo e(old('rental_price', $product->rental_price)); ?>">
                                     <span class="input-group-text">VNĐ</span>
                                 </div>
                                 <?php $__errorArgs = ['rental_price'];
@@ -187,7 +189,37 @@ unset($__errorArgs, $__bag); ?>
                             </div>
                         </div>
                         
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="deposit_price" class="form-label">Giá cọc <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control <?php $__errorArgs = ['deposit_price'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
+                                           id="deposit_price_display" 
+                                           value="<?php echo e(old('deposit_price', $product->deposit_price)); ?>" required>
+                                    <input type="hidden" name="deposit_price" id="deposit_price" value="<?php echo e(old('deposit_price', $product->deposit_price)); ?>">
+                                    <span class="input-group-text">VNĐ</span>
+                                </div>
+                                <?php $__errorArgs = ['deposit_price'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <div class="invalid-feedback"><?php echo e($message); ?></div>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="purchase_date" class="form-label">Ngày mua về <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control <?php $__errorArgs = ['purchase_date'];
@@ -227,5 +259,48 @@ unset($__errorArgs, $__bag); ?>
         </div>
     </div>
 </div>
-<?php $__env->stopSection(); ?> 
+<?php $__env->stopSection(); ?>
+
+<?php $__env->startPush('scripts'); ?>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const purchasePriceDisplay = document.getElementById('purchase_price_display');
+    const purchasePriceHidden = document.getElementById('purchase_price');
+    const rentalPriceDisplay = document.getElementById('rental_price_display');
+    const rentalPriceHidden = document.getElementById('rental_price');
+    const depositPriceDisplay = document.getElementById('deposit_price_display');
+    const depositPriceHidden = document.getElementById('deposit_price');
+
+    const formatter = new Intl.NumberFormat('vi-VN');
+
+    function formatAndSet(displayInput, hiddenInput) {
+        // Format initial value if it exists
+        if (displayInput.value) {
+            const rawValue = displayInput.value.replace(/[^0-9]/g, '');
+            hiddenInput.value = rawValue;
+            displayInput.value = formatter.format(rawValue);
+        }
+
+        displayInput.addEventListener('input', function (e) {
+            // Get raw number value by removing non-digit characters
+            const rawValue = e.target.value.replace(/[^0-9]/g, '');
+            
+            // Update hidden input
+            hiddenInput.value = rawValue;
+            
+            // Format for display and update visible input
+            if (rawValue) {
+                displayInput.value = formatter.format(rawValue);
+            } else {
+                displayInput.value = '';
+            }
+        });
+    }
+
+    formatAndSet(purchasePriceDisplay, purchasePriceHidden);
+    formatAndSet(rentalPriceDisplay, rentalPriceHidden);
+    formatAndSet(depositPriceDisplay, depositPriceHidden);
+});
+</script>
+<?php $__env->stopPush(); ?> 
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\auris\resources\views/products/edit.blade.php ENDPATH**/ ?>

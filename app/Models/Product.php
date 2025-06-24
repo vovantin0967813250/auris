@@ -17,6 +17,7 @@ class Product extends Model
         'image',
         'purchase_price',
         'rental_price',
+        'deposit_price',
         'purchase_date',
         'status'
     ];
@@ -25,6 +26,7 @@ class Product extends Model
         'purchase_date' => 'date',
         'purchase_price' => 'decimal:2',
         'rental_price' => 'decimal:2',
+        'deposit_price' => 'decimal:2',
     ];
 
     // Relationship with rentals

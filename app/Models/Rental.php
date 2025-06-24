@@ -17,11 +17,14 @@ class Rental extends Model
         'expected_return_date',
         'actual_return_date',
         'total_price',
-        'deposit_amount',
+        'rental_fee',           // Tiền thuê
+        'deposit_amount',       // Tiền cọc
+        'deposit_type',         // Loại cọc (money/idcard)
+        'deposit_note',         // Ghi chú về cọc
+        'total_paid',           // Tổng tiền khách đã trả
+        'refund_amount',        // Số tiền hoàn lại
         'status',
         'notes',
-        'deposit_type',
-        'deposit_value',
     ];
 
     protected $casts = [
@@ -29,7 +32,10 @@ class Rental extends Model
         'expected_return_date' => 'date',
         'actual_return_date' => 'date',
         'total_price' => 'decimal:2',
+        'rental_fee' => 'decimal:2',
         'deposit_amount' => 'decimal:2',
+        'total_paid' => 'decimal:2',
+        'refund_amount' => 'decimal:2',
     ];
 
     /**
@@ -72,11 +78,49 @@ class Rental extends Model
         return now()->diffInDays($this->expected_return_date);
     }
 
-    // Calculate total amount (rental price + deposit)
+    /**
+     * Calculate total amount customer needs to pay (rental fee + deposit)
+     */
     public function getTotalAmount(): float
     {
-        $depositAmount = ($this->deposit_type === 'money' && $this->deposit) ? $this->deposit : 0;
-        return $this->rental_price + $depositAmount;
+        return $this->rental_fee + $this->deposit_amount;
+    }
+
+    /**
+     * Calculate amount to refund when returning (deposit amount)
+     */
+    public function getRefundAmount(): float
+    {
+        return $this->deposit_amount;
+    }
+
+    /**
+     * Check if deposit is money type
+     */
+    public function hasMoneyDeposit(): bool
+    {
+        return $this->deposit_type === 'money' && $this->deposit_amount > 0;
+    }
+
+    /**
+     * Check if deposit is ID card type
+     */
+    public function hasIdCardDeposit(): bool
+    {
+        return $this->deposit_type === 'idcard' && !empty($this->deposit_note);
+    }
+
+    /**
+     * Get formatted deposit information
+     */
+    public function getDepositInfo(): string
+    {
+        if ($this->hasMoneyDeposit()) {
+            return number_format($this->deposit_amount) . ' VNĐ';
+        } elseif ($this->hasIdCardDeposit()) {
+            return 'CMND: ' . $this->deposit_note;
+        }
+        return 'Không có cọc';
     }
 
     // Scope for active rentals
@@ -90,5 +134,24 @@ class Rental extends Model
     {
         return $query->where('status', 'active')
                     ->where('expected_return_date', '<', now());
+    }
+
+    // Số ngày trễ hạn (nếu có)
+    public function getLateDays(): int
+    {
+        if (!$this->actual_return_date) return 0;
+        $actual = $this->actual_return_date->diffInDays($this->rental_date);
+        $paid = $this->expected_return_date->diffInDays($this->rental_date);
+        $late = $actual - $paid;
+        return $late > 0 ? $late : 0;
+    }
+
+    // Tiền phạt trễ hạn
+    public function getLateFee(): int
+    {
+        $late = $this->getLateDays();
+        if ($late <= 0) return 0;
+        if ($late === 1) return 20000;
+        return 20000 + ($late - 1) * 10000;
     }
 } 

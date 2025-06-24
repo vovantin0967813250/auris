@@ -82,6 +82,9 @@
                                 @endforeach
                             </p>
                             <p class="mb-1"><strong>Ngày trả:</strong> {{ $rental->expected_return_date->format('d/m/Y') }}</p>
+                            <p class="mb-1"><strong>Tiền thuê:</strong> {{ number_format($rental->rental_fee) }} VNĐ</p>
+                            <p class="mb-1"><strong>Cọc:</strong> {{ $rental->getDepositInfo() }}</p>
+                            <p class="mb-1"><strong>Tổng trả:</strong> {{ number_format($rental->total_paid) }} VNĐ</p>
                             @if($rental->isOverdue())
                                 <p class="mb-2 text-danger"><strong>Quá hạn:</strong> {{ $rental->getOverdueDays() }} ngày</p>
                             @endif
@@ -115,8 +118,9 @@
                         <th>Khách hàng</th>
                         <th>Ngày thuê</th>
                         <th>Ngày trả dự kiến</th>
-                        <th>Tổng tiền</th>
-                        <th>Loại cọc</th>
+                        <th>Tiền thuê</th>
+                        <th>Cọc</th>
+                        <th>Tổng trả</th>
                         <th>Trạng thái</th>
                         <th>Thao tác</th>
                     </tr>
@@ -148,15 +152,20 @@
                                 <br><small class="text-danger">Quá {{ $rental->getOverdueDays() }} ngày</small>
                             @endif
                         </td>
-                        <td>{{ number_format($rental->total_price) }} VNĐ</td>
                         <td>
-                            @if($rental->deposit_type === 'money')
-                                {{ number_format($rental->deposit_value) }} VNĐ
-                            @elseif($rental->deposit_type === 'idcard')
-                                <span class="badge bg-secondary">CCCD</span>
+                            <strong>{{ number_format($rental->rental_fee) }} VNĐ</strong>
+                        </td>
+                        <td>
+                            @if($rental->hasMoneyDeposit())
+                                <span class="badge bg-info">{{ number_format($rental->deposit_amount) }} VNĐ</span>
+                            @elseif($rental->hasIdCardDeposit())
+                                <span class="badge bg-secondary">CCCD: {{ $rental->deposit_note }}</span>
                             @else
-                                0 VNĐ
+                                <span class="text-muted">Không có</span>
                             @endif
+                        </td>
+                        <td>
+                            <strong class="text-primary">{{ number_format($rental->total_paid) }} VNĐ</strong>
                         </td>
                         <td>
                             @if($rental->isOverdue())

@@ -31,18 +31,38 @@
                     <p class="text-danger"><strong>Quá hạn:</strong> <?php echo e($rental->getOverdueDays()); ?> ngày</p>
                 <?php endif; ?>
                 <hr>
-                <p><strong>Tổng tiền thuê:</strong> <?php echo e(number_format($rental->total_price)); ?> VNĐ</p>
-                <p><strong>Tiền cọc:</strong> 
-                    <?php if($rental->deposit_type === 'money'): ?>
-                        <?php echo e(number_format($rental->deposit_value)); ?> VNĐ
-                    <?php elseif($rental->deposit_type === 'idcard'): ?>
-                        <?php echo e($rental->deposit_value); ?> (CCCD)
-                    <?php else: ?>
-                        Không có
-                    <?php endif; ?>
-                </p>
+                <div class="row">
+                    <div class="col-6">
+                        <p><strong>Tiền thuê:</strong></p>
+                        <p><strong>Cọc:</strong></p>
+                        <p><strong>Tổng trả:</strong></p>
+                        <?php if($rental->status === 'returned' && $rental->hasMoneyDeposit()): ?>
+                        <p><strong>Hoàn lại:</strong></p>
+                        <?php endif; ?>
+                    </div>
+                    <div class="col-6 text-end">
+                        <p class="text-primary"><?php echo e(number_format($rental->rental_fee)); ?> VNĐ</p>
+                        <p><?php echo e($rental->getDepositInfo()); ?></p>
+                        <p class="fw-bold text-success"><?php echo e(number_format($rental->total_paid)); ?> VNĐ</p>
+                        <?php if($rental->status === 'returned' && $rental->hasMoneyDeposit()): ?>
+                        <p class="text-info"><?php echo e(number_format($rental->deposit_amount)); ?> VNĐ</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
                 <?php if($rental->notes): ?>
+                <hr>
                 <p><strong>Ghi chú:</strong> <?php echo e($rental->notes); ?></p>
+                <?php endif; ?>
+                <?php if($rental->status === 'returned' && $rental->getLateDays() > 0): ?>
+                    <div class="alert alert-warning">
+                        <strong>Khách trả trễ <?php echo e($rental->getLateDays()); ?> ngày.</strong><br>
+                        Tiền phạt: <strong><?php echo e(number_format($rental->getLateFee())); ?> VNĐ</strong><br>
+                        <?php if($rental->hasMoneyDeposit()): ?>
+                            Đã trừ vào tiền cọc. Số tiền hoàn lại: <strong><?php echo e(number_format($rental->refund_amount)); ?> VNĐ</strong>
+                        <?php elseif($rental->hasIdCardDeposit()): ?>
+                            Vui lòng thu thêm <strong><?php echo e(number_format($rental->getLateFee())); ?> VNĐ</strong> từ khách.
+                        <?php endif; ?>
+                    </div>
                 <?php endif; ?>
             </div>
         </div>

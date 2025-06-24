@@ -18,7 +18,27 @@
     #productSearchResult {
         position: absolute;
         z-index: 1000;
-        width: 100%;
+        width: 97%;
+    }
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+    }
+    .summary-total {
+        font-weight: bold;
+        font-size: 1.1em;
+        border-top: 2px solid #dee2e6;
+        padding-top: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    .rental-fee-display {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 0.375rem 0.75rem;
+        font-weight: bold;
+        color: #495057;
     }
 </style>
 <?php $__env->stopPush(); ?>
@@ -48,7 +68,8 @@
                             <thead>
                                 <tr>
                                     <th>Sản phẩm</th>
-                                    <th style="width: 150px;">Giá thuê</th>
+                                    <th style="width: 120px;">Giá thuê</th>
+                                    <th style="width: 120px;">Giá cọc</th>
                                     <th style="width: 50px;"></th>
                                 </tr>
                             </thead>
@@ -100,10 +121,15 @@
                         <input type="date" class="form-control" id="expected_return_date" name="expected_return_date" required>
                     </div>
                     <hr>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Tổng tiền thuê:</span>
-                        <strong id="total-price-display">0 VNĐ</strong>
+                    
+                    <!-- Tổng tiền thuê -->
+                    <div class="summary-item">
+                        <span>Giá thuê:</span>
+                        <strong id="total-rental-display">0 VNĐ</strong>
                     </div>
+                    <input type="hidden" name="rental_fee" id="rental_fee_hidden" value="0">
+                    
+                    <!-- Loại cọc -->
                     <div class="mb-3">
                         <label for="deposit_type" class="form-label">Loại cọc</label>
                         <select class="form-select" id="deposit_type" name="deposit_type">
@@ -111,23 +137,35 @@
                             <option value="idcard">Cọc căn cước công dân</option>
                         </select>
                     </div>
+                    
+                    <!-- Tiền cọc -->
                     <div class="mb-3" id="deposit_money_group">
-                        <label for="deposit_money_display" class="form-label">Số tiền cọc</label>
+                        <label for="deposit_amount_display" class="form-label">Số tiền cọc</label>
                         <div class="input-group">
-                            <input type="text" class="form-control" id="deposit_money_display" value="0">
-                            <input type="hidden" name="deposit_money" id="deposit_money" value="0">
+                            <input type="text" class="form-control" id="deposit_amount_display" value="0">
+                            <input type="hidden" name="deposit_amount" id="deposit_amount_hidden" value="0">
                             <span class="input-group-text">VNĐ</span>
                         </div>
+                        <small class="form-text text-muted">Có thể chỉnh sửa giá cọc mặc định từ sản phẩm</small>
                     </div>
+                    
+                    <!-- CMND cọc -->
                     <div class="mb-3 d-none" id="deposit_idcard_group">
-                        <label for="deposit_idcard" class="form-label">Tên/ID căn cước công dân</label>
-                        <input type="text" class="form-control" id="deposit_idcard" name="deposit_idcard" placeholder="Nhập tên hoặc số căn cước">
+                        <label for="deposit_note" class="form-label">Số căn cước công dân</label>
+                        <input type="text" class="form-control" id="deposit_note" name="deposit_note" placeholder="Nhập số căn cước">
                     </div>
+                    
+                    <!-- Tổng tiền phải trả -->
+                    <div class="summary-item summary-total">
+                        <span>Tổng tiền phải trả:</span>
+                        <strong id="total-paid-display">0 VNĐ</strong>
+                    </div>
+                    
                     <div class="mb-3">
                         <label for="notes" class="form-label">Ghi chú</label>
                         <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
                     </div>
-                    <input type="hidden" name="total_price" id="total_price_hidden">
+                    
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary btn-lg">
                             <i class="fas fa-save me-2"></i>Lưu đơn thuê
@@ -147,10 +185,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const searchResult = document.getElementById('productSearchResult');
     const cartItems = document.getElementById('cart-items');
     const cartEmptyMsg = document.getElementById('cart-empty-message');
-    const totalPriceDisplay = document.getElementById('total-price-display');
-    const totalPriceHidden = document.getElementById('total_price_hidden');
+    const totalRentalDisplay = document.getElementById('total-rental-display');
+    const rentalFeeHidden = document.getElementById('rental_fee_hidden');
+    const totalPaidDisplay = document.getElementById('total-paid-display');
     const rentalForm = document.getElementById('rentalForm');
     const clearSearchBtn = document.getElementById('clearSearch');
+    const rentalDateInput = document.getElementById('rental_date');
+    const returnDateInput = document.getElementById('expected_return_date');
 
     let cart = []; // Array to store product objects in the cart
     let debounceTimeout;
@@ -185,7 +226,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     const item = document.createElement('a');
                     item.href = '#';
                     item.classList.add('list-group-item', 'list-group-item-action');
-                    item.innerHTML = `<strong>${product.product_code}</strong> - ${product.name}`;
+                    item.innerHTML = `
+                        <strong>${product.product_code}</strong> - ${product.name}<br>
+                        <small class="text-muted">
+                            Thuê: ${formatCurrency(product.rental_price)} | 
+                            Cọc: ${formatCurrency(product.deposit_price)}
+                        </small>
+                    `;
                     if(product.status !== 'available' || cart.some(p => p.id === product.id)) {
                         item.classList.add('disabled');
                         item.innerHTML += ` <span class="badge bg-danger float-end">Đã thuê/Trong giỏ</span>`;
@@ -238,7 +285,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         <small class="text-muted">Mã: ${product.product_code}</small>
                         <input type="hidden" name="products[]" value="${product.id}">
                     </td>
-                    <td>${formatCurrency(product.rental_price)}</td>
+                    <td>
+                        <div class="rental-fee-display">${formatCurrency(product.rental_price)}</div>
+                    </td>
+                    <td>
+                        <div class="rental-fee-display">${formatCurrency(product.deposit_price)}</div>
+                    </td>
                     <td>
                         <button type="button" class="btn btn-sm btn-outline-danger remove-item-btn" data-id="${product.id}">&times;</button>
                     </td>
@@ -259,18 +311,124 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // UPDATE TOTALS
-    function updateTotals() {
-        const total = cart.reduce((sum, product) => sum + parseFloat(product.rental_price), 0);
-        totalPriceDisplay.textContent = formatCurrency(total);
-        totalPriceHidden.value = total;
-    }
-    
     // UTILITY
     function formatCurrency(amount) {
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
     }
-    
+
+    // --- Deposit Type Logic ---
+    const depositType = document.getElementById('deposit_type');
+    const depositMoneyGroup = document.getElementById('deposit_money_group');
+    const depositIdCardGroup = document.getElementById('deposit_idcard_group');
+    const depositAmountDisplay = document.getElementById('deposit_amount_display');
+    const depositAmountHidden = document.getElementById('deposit_amount_hidden');
+
+    // Định dạng số tiền cọc
+    const formatter = new Intl.NumberFormat('vi-VN');
+    function formatDepositAmount() {
+        const rawValue = depositAmountDisplay.value.replace(/[^0-9]/g, '');
+        depositAmountHidden.value = rawValue;
+        depositAmountDisplay.value = rawValue ? formatter.format(rawValue) : '';
+    }
+    depositAmountDisplay.addEventListener('input', function() {
+        formatDepositAmount();
+        updateTotals();
+    });
+    // Format initial value
+    formatDepositAmount();
+
+    // Ẩn/hiện input theo loại cọc
+    function updateDepositInput() {
+        if (depositType.value === 'money') {
+            depositMoneyGroup.classList.remove('d-none');
+            depositIdCardGroup.classList.add('d-none');
+            depositAmountDisplay.required = false; // Không bắt buộc phải có tiền cọc
+            document.getElementById('deposit_note').required = false;
+            // Nếu chuyển từ cọc căn cước sang cọc tiền, tự động lấy tổng giá cọc mặc định nếu chưa nhập
+            if (cart.length > 0 && (!depositAmountHidden.value || depositAmountHidden.value == '0')) {
+                const totalDeposit = cart.reduce((sum, product) => sum + parseFloat(product.deposit_price), 0);
+                if (totalDeposit > 0) {
+                    depositAmountHidden.value = totalDeposit;
+                    depositAmountDisplay.value = formatter.format(totalDeposit);
+                }
+            }
+        } else {
+            depositMoneyGroup.classList.add('d-none');
+            depositIdCardGroup.classList.remove('d-none');
+            depositAmountDisplay.required = false;
+            document.getElementById('deposit_note').required = true;
+            // Khi chọn cọc căn cước thì set tiền cọc về 0
+            depositAmountHidden.value = 0;
+            depositAmountDisplay.value = '';
+        }
+        updateTotals();
+    }
+    depositType.addEventListener('change', updateDepositInput);
+    updateDepositInput();
+
+    // TÍNH TIỀN THUÊ THEO SỐ NGÀY
+    function calculateRentalFee() {
+        if (cart.length === 0) return 0;
+        const rentalDate = rentalDateInput.value;
+        const returnDate = returnDateInput.value;
+        if (!rentalDate || !returnDate) return cart.reduce((sum, p) => sum + parseFloat(p.rental_price), 0);
+        const start = new Date(rentalDate);
+        const end = new Date(returnDate);
+        let days = Math.floor((end - start) / (1000 * 60 * 60 * 24));
+        if (isNaN(days) || days < 1) days = 1;
+        let baseFee = cart.reduce((sum, p) => sum + parseFloat(p.rental_price), 0);
+        if (days === 1) {
+            return baseFee;
+        } else if (days === 2) {
+            return baseFee + 20000;
+        } else if (days > 2) {
+            return baseFee + 20000 + (days - 2) * 10000;
+        }
+        return baseFee;
+    }
+
+    // TÍNH TỔNG TIỀN PHẢI TRẢ
+    function updateTotals() {
+        const rentalFee = calculateRentalFee();
+        let depositAmount = parseFloat(depositAmountHidden.value) || 0;
+        const type = depositType.value;
+        if (type === 'idcard') {
+            depositAmount = 0;
+        }
+        const totalPaid = rentalFee + depositAmount;
+        totalRentalDisplay.textContent = formatCurrency(rentalFee);
+        rentalFeeHidden.value = rentalFee;
+        totalPaidDisplay.textContent = formatCurrency(totalPaid);
+    }
+
+    // Khi thêm/xóa sản phẩm thì cập nhật lại tổng tiền và giá cọc mặc định nếu là cọc tiền
+    const originalAddToCart = addToCart;
+    addToCart = function(product) {
+        originalAddToCart(product);
+        if (depositType.value === 'money') {
+            const totalDeposit = cart.reduce((sum, p) => sum + parseFloat(p.deposit_price), 0);
+            if (totalDeposit > 0) {
+                depositAmountHidden.value = totalDeposit;
+                depositAmountDisplay.value = formatter.format(totalDeposit);
+            }
+        }
+        updateTotals();
+    };
+    const originalRemoveFromCart = removeFromCart;
+    removeFromCart = function(productId) {
+        originalRemoveFromCart(productId);
+        if (depositType.value === 'money') {
+            const totalDeposit = cart.reduce((sum, p) => sum + parseFloat(p.deposit_price), 0);
+            depositAmountHidden.value = totalDeposit;
+            depositAmountDisplay.value = totalDeposit ? formatter.format(totalDeposit) : '';
+        }
+        updateTotals();
+    };
+
+    // Khi thay đổi ngày thuê/ngày trả thì cập nhật lại tổng tiền
+    rentalDateInput.addEventListener('change', updateTotals);
+    returnDateInput.addEventListener('change', updateTotals);
+
     // FORM VALIDATION
     rentalForm.addEventListener('submit', function(e) {
         if (cart.length === 0) {
@@ -278,42 +436,6 @@ document.addEventListener('DOMContentLoaded', function () {
             alert('Vui lòng thêm ít nhất một sản phẩm vào đơn thuê.');
         }
     });
-
-    // --- Deposit Type Logic ---
-    const depositType = document.getElementById('deposit_type');
-    const depositMoneyGroup = document.getElementById('deposit_money_group');
-    const depositIdCardGroup = document.getElementById('deposit_idcard_group');
-    const depositMoneyDisplay = document.getElementById('deposit_money_display');
-    const depositMoneyHidden = document.getElementById('deposit_money');
-
-    // Định dạng số tiền cọc
-    const formatter = new Intl.NumberFormat('vi-VN');
-    function formatDepositMoney() {
-        const rawValue = depositMoneyDisplay.value.replace(/[^0-9]/g, '');
-        depositMoneyHidden.value = rawValue;
-        depositMoneyDisplay.value = rawValue ? formatter.format(rawValue) : '';
-    }
-    depositMoneyDisplay.addEventListener('input', formatDepositMoney);
-    // Format initial value
-    formatDepositMoney();
-
-    // Ẩn/hiện input theo loại cọc
-    function updateDepositInput() {
-        if (depositType.value === 'money') {
-            depositMoneyGroup.classList.remove('d-none');
-            depositIdCardGroup.classList.add('d-none');
-            depositMoneyDisplay.required = true;
-            document.getElementById('deposit_idcard').required = false;
-        } else {
-            depositMoneyGroup.classList.add('d-none');
-            depositIdCardGroup.classList.remove('d-none');
-            depositMoneyDisplay.required = false;
-            document.getElementById('deposit_idcard').required = true;
-        }
-    }
-    depositType.addEventListener('change', updateDepositInput);
-    updateDepositInput();
-
 });
 </script>
 <?php $__env->stopPush(); ?> 

@@ -81,7 +81,9 @@
                             </p>
                             <p class="mb-1"><strong>Khách hàng:</strong> <?php echo e($rental->customer->name); ?> - <?php echo e($rental->customer->phone); ?></p>
                             <p class="mb-1"><strong>Ngày thuê:</strong> <?php echo e($rental->rental_date->format('d/m/Y')); ?></p>
-                            <p class="mb-1"><strong>Tổng tiền:</strong> <?php echo e(number_format($rental->total_price)); ?> VNĐ</p>
+                            <p class="mb-1"><strong>Tiền thuê:</strong> <?php echo e(number_format($rental->rental_fee)); ?> VNĐ</p>
+                            <p class="mb-1"><strong>Cọc:</strong> <?php echo e($rental->getDepositInfo()); ?></p>
+                            <p class="mb-1"><strong>Tổng trả:</strong> <?php echo e(number_format($rental->total_paid)); ?> VNĐ</p>
                             
                             <a href="<?php echo e(route('rentals.show', $rental)); ?>" class="btn btn-sm btn-outline-info w-100">
                                 <i class="fas fa-eye"></i> Xem chi tiết
@@ -104,8 +106,9 @@
                         <th>Khách hàng</th>
                         <th>Ngày thuê</th>
                         <th>Ngày trả (Thực tế)</th>
-                        <th>Tổng tiền</th>
-                        <th>Loại cọc</th>
+                        <th>Tiền thuê</th>
+                        <th>Cọc</th>
+                        <th>Tổng trả</th>
                         <th>Trạng thái</th>
                         <th class="text-center">Thao tác</th>
                     </tr>
@@ -133,15 +136,18 @@
                                 <span class="text-muted">Chưa trả</span>
                             <?php endif; ?>
                         </td>
-                        <td><?php echo e(number_format($rental->total_price)); ?> VNĐ</td>
+                        <td><?php echo e(number_format($rental->rental_fee)); ?> VNĐ</td>
                         <td>
-                            <?php if($rental->deposit_type === 'money'): ?>
-                                <?php echo e(number_format($rental->deposit_value)); ?> VNĐ
-                            <?php elseif($rental->deposit_type === 'idcard'): ?>
-                                <span class="badge bg-secondary">CCCD</span>
+                            <?php if($rental->hasMoneyDeposit()): ?>
+                                <span class="badge bg-info"><?php echo e(number_format($rental->deposit_amount)); ?> VNĐ</span>
+                            <?php elseif($rental->hasIdCardDeposit()): ?>
+                                <span class="badge bg-secondary">CCCD: <?php echo e($rental->deposit_note); ?></span>
                             <?php else: ?>
-                                0 VNĐ
+                                <span class="text-muted">Không có</span>
                             <?php endif; ?>
+                        </td>
+                        <td>
+                            <strong class="text-primary"><?php echo e(number_format($rental->total_paid)); ?> VNĐ</strong>
                         </td>
                         <td>
                             <?php if($rental->status === 'returned'): ?>

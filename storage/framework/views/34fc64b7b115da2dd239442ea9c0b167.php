@@ -125,6 +125,7 @@
                                     </div>
                                     <p class="mb-1 text-muted"><strong>Mã:</strong> <?php echo e($product->product_code); ?></p>
                                     <p class="mb-1"><strong>Giá thuê:</strong> <?php echo e(number_format($product->rental_price)); ?> VNĐ</p>
+                                    <p class="mb-1"><strong>Giá cọc:</strong> <?php echo e(number_format($product->deposit_price)); ?> VNĐ</p>
                                     <p class="mb-2"><strong>Lượt thuê:</strong> <span class="badge bg-primary rounded-pill"><?php echo e($product->rentals_count); ?></span></p>
                                     
                                     <!-- Actions -->
@@ -155,6 +156,7 @@
                         <th class="text-center">Hình ảnh</th>
                         <th class="text-center">Tên sản phẩm</th>
                         <th class="text-center">Giá cho thuê</th>
+                        <th class="text-center">Giá cọc</th>
                         <th class="text-center">Ngày mua</th>
                         <th class="text-center">Trạng thái</th>
                         <th class="text-center">Số lần thuê</th>
@@ -187,6 +189,7 @@
                             <?php endif; ?>
                         </td>
                         <td class="text-center"><?php echo e(number_format($product->rental_price)); ?> VNĐ</td>
+                        <td class="text-center"><?php echo e(number_format($product->deposit_price)); ?> VNĐ</td>
                         <td class="text-center"><?php echo e($product->purchase_date->format('d/m/Y')); ?></td>
                         <td class="text-center">
                             <?php if($product->status === 'available'): ?>
@@ -198,24 +201,24 @@
                             <?php endif; ?>
                         </td>
                         <td class="text-center">
-                            <span class="badge bg-primary rounded-pill" style="font-size: 0.9em;">
-                                <?php echo e($product->rentals_count); ?>
-
-                            </span>
+                            <span class="badge bg-primary rounded-pill"><?php echo e($product->rentals_count); ?></span>
                         </td>
                         <td class="text-center">
                             <div class="btn-group" role="group">
-                                <a  href="<?php echo e(route('products.edit', $product)); ?>" 
-                                   class="btn btn-sm btn-outline-primary">
+                                <a href="<?php echo e(route('products.edit', $product)); ?>" 
+                                   class="btn btn-sm btn-outline-primary"
+                                   data-bs-toggle="tooltip" title="Chỉnh sửa">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form class="ms-1" action="<?php echo e(route('products.destroy', $product)); ?>" 
+                                <form action="<?php echo e(route('products.destroy', $product)); ?>" 
                                       method="POST" 
                                       onsubmit="return confirm('Bạn có chắc muốn xóa sản phẩm này?')"
                                       style="display: inline;">
                                     <?php echo csrf_field(); ?>
                                     <?php echo method_field('DELETE'); ?>
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <button type="submit" 
+                                            class="btn btn-sm btn-outline-danger"
+                                            data-bs-toggle="tooltip" title="Xóa">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
@@ -245,5 +248,15 @@
         <?php endif; ?>
     </div>
 </div>
-<?php $__env->stopSection(); ?> 
+<?php $__env->stopSection(); ?>
+
+<?php $__env->startPush('scripts'); ?>
+<script>
+    // Enable Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>
+<?php $__env->stopPush(); ?> 
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\auris\resources\views/products/index.blade.php ENDPATH**/ ?>
