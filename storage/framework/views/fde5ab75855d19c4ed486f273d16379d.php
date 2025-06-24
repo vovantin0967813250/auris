@@ -101,7 +101,6 @@
             <table class="table table-bordered table-hover" width="100%" cellspacing="0">
                 <thead class="table-light">
                     <tr>
-                        <th>Mã đơn</th>
                         <th>Sản phẩm (SL)</th>
                         <th>Khách hàng</th>
                         <th>Ngày thuê</th>
@@ -116,7 +115,6 @@
                 <tbody>
                     <?php $__currentLoopData = $rentals; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $rental): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <tr>
-                        <td>#<?php echo e($rental->id); ?></td>
                         <td>
                             <?php $__currentLoopData = $rental->products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <span class="badge bg-light text-dark border"><?php echo e($product->product_code); ?></span>

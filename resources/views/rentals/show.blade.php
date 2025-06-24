@@ -91,6 +91,9 @@
                 </h6>
                 <div>
                      @if($rental->status === 'active')
+                        <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#extendModal">
+                            <i class="fas fa-clock me-1"></i>Gia hạn
+                        </button>
                         <form action="{{ route('rentals.return', $rental) }}" method="POST" onsubmit="return confirm('Xác nhận trả toàn bộ sản phẩm trong đơn này?')" style="display: inline;">
                             @csrf
                             <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-undo me-1"></i>Đánh dấu đã trả</button>
@@ -134,4 +137,113 @@
         </div>
     </div>
 </div>
-@endsection 
+
+<!-- Extend Rental Modal -->
+@if($rental->status === 'active')
+<div class="modal fade" id="extendModal" tabindex="-1" aria-labelledby="extendModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="extendModalLabel">
+                    <i class="fas fa-clock me-2"></i>Gia hạn đơn thuê #{{ $rental->id }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('rentals.extend', $rental) }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <strong>Thông tin hiện tại:</strong><br>
+                        Ngày trả dự kiến: <strong>{{ $rental->expected_return_date->format('d/m/Y') }}</strong><br>
+                        Tiền thuê hiện tại: <strong>{{ number_format($rental->rental_fee) }} VNĐ</strong>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="extension_days" class="form-label">Số ngày gia hạn thêm:</label>
+                        <select class="form-select" id="extension_days" name="extension_days" required>
+                            <option value="">Chọn số ngày</option>
+                            @for($i = 1; $i <= 30; $i++)
+                                <option value="{{ $i }}">{{ $i }} ngày</option>
+                            @endfor
+                        </select>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <small>
+                            <strong>Lưu ý:</strong> Tiền thuê bổ sung sẽ được tính theo quy tắc:<br>
+                            • Ngày thứ 2: +20.000 VNĐ<br>
+                            • Từ ngày thứ 3: +10.000 VNĐ/ngày
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-clock me-1"></i>Xác nhận gia hạn
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+
+@endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const extensionDaysSelect = document.getElementById('extension_days');
+    const modalBody = document.querySelector('#extendModal .modal-body');
+    // Lấy giá thuê từng sản phẩm từ backend
+    const productPrices = @json($rental->products->pluck('rental_price'));
+    const currentRentalDays = {{ $rental->rental_date->diffInDays($rental->expected_return_date) }};
+    const currentRentalFee = {{ $rental->rental_fee }};
+
+    if (extensionDaysSelect) {
+        extensionDaysSelect.addEventListener('change', function() {
+            const days = parseInt(this.value);
+            if (days > 0) {
+                let estimatedAdditionalFee = 0;
+                for (let day = 1; day <= days; day++) {
+                    const dayNumber = currentRentalDays + day;
+                    productPrices.forEach(function(basePrice) {
+                        let dailyFee = 0;
+                        if (dayNumber === 1) {
+                            dailyFee = basePrice;
+                        } else if (dayNumber === 2) {
+                            dailyFee = 20000;
+                        } else {
+                            dailyFee = 10000;
+                        }
+                        estimatedAdditionalFee += dailyFee;
+                    });
+                }
+                // Hiển thị thông tin ước tính
+                const newReturnDate = new Date('{{ $rental->expected_return_date->format("Y-m-d") }}');
+                newReturnDate.setDate(newReturnDate.getDate() + days);
+                const estimateHtml = `
+                    <div class=\"alert alert-success\">
+                        <strong>Ước tính gia hạn:</strong><br>
+                        Ngày trả mới: <strong>${newReturnDate.toLocaleDateString('vi-VN')}</strong><br>
+                        Tiền thuê bổ sung: <strong>${estimatedAdditionalFee.toLocaleString('vi-VN')} VNĐ</strong><br>
+                        Tổng tiền thuê sau gia hạn: <strong>${(currentRentalFee + estimatedAdditionalFee).toLocaleString('vi-VN')} VNĐ</strong>
+                    </div>
+                `;
+                let estimateDiv = modalBody.querySelector('.alert-success');
+                if (estimateDiv) {
+                    estimateDiv.outerHTML = estimateHtml;
+                } else {
+                    modalBody.insertAdjacentHTML('beforeend', estimateHtml);
+                }
+            } else {
+                const estimateDiv = modalBody.querySelector('.alert-success');
+                if (estimateDiv) {
+                    estimateDiv.remove();
+                }
+            }
+        });
+    }
+});
+</script>
+@endpush 

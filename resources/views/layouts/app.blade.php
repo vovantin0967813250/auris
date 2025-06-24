@@ -150,6 +150,12 @@
                         Lịch sử thuê
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('reports.index') ? 'active' : '' }}" href="{{ route('reports.index') }}">
+                        <i class="fas fa-chart-bar fa-fw me-2"></i>
+                        Báo cáo thống kê
+                    </a>
+                </li>
             </ul>
         </nav>
 

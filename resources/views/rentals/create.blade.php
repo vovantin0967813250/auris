@@ -377,12 +377,13 @@ document.addEventListener('DOMContentLoaded', function () {
         let days = Math.floor((end - start) / (1000 * 60 * 60 * 24));
         if (isNaN(days) || days < 1) days = 1;
         let baseFee = cart.reduce((sum, p) => sum + parseFloat(p.rental_price), 0);
+        const productCount = cart.length;
         if (days === 1) {
             return baseFee;
         } else if (days === 2) {
-            return baseFee + 20000;
+            return baseFee + 20000 * productCount;
         } else if (days > 2) {
-            return baseFee + 20000 + (days - 2) * 10000;
+            return baseFee + (20000 + (days - 2) * 10000) * productCount;
         }
         return baseFee;
     }

@@ -93,6 +93,15 @@
         </a>
     </div>
     <div class="card-body">
+        <!-- Search Form -->
+        <form class="row mb-3" method="GET" action="{{ route('products.index') }}">
+            <div class="col-md-10 col-7">
+                <input type="text" name="search" class="form-control" placeholder="Tìm theo mã SP hoặc tên sản phẩm..." value="{{ old('search', $search ?? '') }}">
+            </div>
+            <div class="col-md-2 col-5">
+                <button type="submit" class="btn btn-outline-primary w-100"><i class="fas fa-search me-1"></i>Tìm kiếm</button>
+            </div>
+        </form>
         <!-- Mobile Card View -->
         <div class="product-cards d-md-none">
             @if($products->count() > 0)

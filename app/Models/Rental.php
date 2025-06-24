@@ -63,8 +63,8 @@ class Rental extends Model
     // Check if rental is overdue
     public function isOverdue(): bool
     {
-        return $this->status === 'active' && 
-               $this->expected_return_date->isPast() && 
+        return $this->status === 'active' &&
+               $this->expected_return_date->lt(today()) &&
                !$this->actual_return_date;
     }
 
@@ -140,18 +140,19 @@ class Rental extends Model
     public function getLateDays(): int
     {
         if (!$this->actual_return_date) return 0;
-        $actual = $this->actual_return_date->diffInDays($this->rental_date);
-        $paid = $this->expected_return_date->diffInDays($this->rental_date);
-        $late = $actual - $paid;
-        return $late > 0 ? $late : 0;
+        $actual = $this->actual_return_date->copy()->startOfDay();
+        $expected = $this->expected_return_date->copy()->startOfDay();
+        $late = $actual->gt($expected) ? $actual->diffInDays($expected) : 0;
+        return $late;
     }
 
     // Tiền phạt trễ hạn
     public function getLateFee(): int
     {
         $late = $this->getLateDays();
-        if ($late <= 0) return 0;
-        if ($late === 1) return 20000;
-        return 20000 + ($late - 1) * 10000;
+        $productCount = $this->items()->count(); // hoặc $this->products->count()
+        if ($late <= 0 || $productCount == 0) return 0;
+        if ($late === 1) return 20000 * $productCount;
+        return (20000 + ($late - 1) * 10000) * $productCount;
     }
 } 

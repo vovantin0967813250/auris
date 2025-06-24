@@ -120,7 +120,6 @@
                         <table class="table table-bordered recent-rentals-table" width="100%" cellspacing="0">
                             <thead>
                                 <tr>
-                                    <th>Mã Đơn</th>
                                     <th>Sản phẩm</th>
                                     <th>Khách hàng</th>
                                     <th>Trạng thái</th>
@@ -129,7 +128,6 @@
                             <tbody>
                                 @foreach($recentRentals as $rental)
                                 <tr>
-                                    <td><a href="{{ route('rentals.show', $rental) }}">#{{ $rental->id }}</a></td>
                                     <td>
                                         @foreach($rental->products->take(2) as $product)
                                             <span class="badge bg-light text-dark border">{{ $product->product_code }}</span>

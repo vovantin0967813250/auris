@@ -101,7 +101,6 @@
             <table class="table table-bordered table-hover" width="100%" cellspacing="0">
                 <thead class="table-light">
                     <tr>
-                        <th>Mã đơn</th>
                         <th>Sản phẩm (SL)</th>
                         <th>Khách hàng</th>
                         <th>Ngày thuê</th>
@@ -116,7 +115,6 @@
                 <tbody>
                     @foreach($rentals as $rental)
                     <tr>
-                        <td>#{{ $rental->id }}</td>
                         <td>
                             @foreach($rental->products as $product)
                                 <span class="badge bg-light text-dark border">{{ $product->product_code }}</span>

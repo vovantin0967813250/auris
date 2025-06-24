@@ -29,11 +29,11 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // Revenue calculation (this month)
+        // Revenue calculation (this month) - only rental fees, not deposits
         $thisMonthRevenue = Rental::where('status', 'returned')
             ->whereMonth('actual_return_date', now()->month)
             ->whereYear('actual_return_date', now()->year)
-            ->sum('total_price');
+            ->sum('rental_fee');
 
         return view('dashboard', compact(
             'totalProducts',

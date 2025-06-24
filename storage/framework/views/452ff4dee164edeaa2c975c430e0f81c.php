@@ -120,7 +120,6 @@
                         <table class="table table-bordered recent-rentals-table" width="100%" cellspacing="0">
                             <thead>
                                 <tr>
-                                    <th>Mã Đơn</th>
                                     <th>Sản phẩm</th>
                                     <th>Khách hàng</th>
                                     <th>Trạng thái</th>
@@ -129,7 +128,6 @@
                             <tbody>
                                 <?php $__currentLoopData = $recentRentals; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $rental): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <tr>
-                                    <td><a href="<?php echo e(route('rentals.show', $rental)); ?>">#<?php echo e($rental->id); ?></a></td>
                                     <td>
                                         <?php $__currentLoopData = $rental->products->take(2); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                             <span class="badge bg-light text-dark border"><?php echo e($product->product_code); ?></span>

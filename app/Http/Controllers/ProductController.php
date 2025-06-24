@@ -11,12 +11,19 @@ use Illuminate\Validation\Rule;
 class ProductController extends Controller
 {
     // Display product management page
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::withCount('rentals')->latest()->paginate(10);
+        $query = Product::withCount('rentals')->latest();
+        $search = $request->input('search');
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('product_code', 'LIKE', "%{$search}%")
+                  ->orWhere('name', 'LIKE', "%{$search}%");
+            });
+        }
+        $products = $query->paginate(10)->appends(['search' => $search]);
         $totalRentalCount = Rental::count();
-        
-        return view('products.index', compact('products', 'totalRentalCount'));
+        return view('products.index', compact('products', 'totalRentalCount', 'search'));
     }
 
     // Show create product form

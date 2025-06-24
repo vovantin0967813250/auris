@@ -225,4 +225,71 @@ class RentalController extends Controller
 
         return view('rentals.history', compact('rentals'));
     }
+
+    // Extend rental duration
+    public function extend(Request $request, Rental $rental)
+    {
+        if ($rental->status !== 'active') {
+            return back()->with('error', 'Chỉ có thể gia hạn đơn thuê đang hoạt động!');
+        }
+
+        $validated = $request->validate([
+            'extension_days' => 'required|integer|min:1|max:30',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $extensionDays = (int) $validated['extension_days'];
+            $oldExpectedReturnDate = $rental->expected_return_date->copy();
+            $newExpectedReturnDate = $oldExpectedReturnDate->addDays($extensionDays);
+
+            // Tính tiền thuê bổ sung theo logic hiện tại
+            $additionalRentalFee = $this->calculateAdditionalRentalFee($rental, $extensionDays);
+
+            // Cập nhật đơn thuê
+            $rental->expected_return_date = $newExpectedReturnDate;
+            $rental->rental_fee += $additionalRentalFee;
+            $rental->total_paid += $additionalRentalFee;
+            $rental->save();
+
+            DB::commit();
+
+            return redirect()->route('rentals.show', $rental)
+                ->with('success', "Đã gia hạn thành công thêm {$extensionDays} ngày. Tiền thuê bổ sung: " . number_format($additionalRentalFee) . " VNĐ. Ngày trả mới: " . $newExpectedReturnDate->format('d/m/Y'));
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
+        }
+    }
+
+    // Calculate additional rental fee for extension
+    private function calculateAdditionalRentalFee(Rental $rental, int $extensionDays)
+    {
+        $totalAdditionalFee = 0;
+        $currentRentalDays = $rental->rental_date->diffInDays($rental->expected_return_date);
+        $productCount = $rental->items->count();
+
+        // Tính tiền gia hạn chỉ cho các ngày mới, nhân với số lượng sản phẩm
+        for ($day = 1; $day <= $extensionDays; $day++) {
+            $dayNumber = $currentRentalDays + $day;
+            $dailyFee = 0;
+
+            // Lấy giá thuê trung bình của từng sản phẩm (giả sử các sản phẩm có giá giống nhau)
+            // Nếu khác nhau, cần tính riêng từng sản phẩm
+            foreach ($rental->items as $item) {
+                $basePrice = $item->product->rental_price;
+                if ($dayNumber == 1) {
+                    $dailyFee += $basePrice;
+                } elseif ($dayNumber == 2) {
+                    $dailyFee += $basePrice + 20000;
+                } else {
+                    $dailyFee += $basePrice + 20000 + (($dayNumber - 2) * 10000);
+                }
+            }
+            $totalAdditionalFee += $dailyFee;
+        }
+        return $totalAdditionalFee;
+    }
 } 

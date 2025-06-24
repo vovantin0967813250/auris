@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\Customer;
 use App\Models\Rental;
 use App\Models\RentalItem;
+use App\Models\User;
 
 class DatabaseSeeder extends Seeder
 {
@@ -91,5 +92,14 @@ class DatabaseSeeder extends Seeder
         $rental2->items()->create(['product_id' => $p2->id, 'price' => $p2->rental_price]);
         // Product p2 is available because it was returned
         $p2->update(['status' => 'available']);
+
+        // Seeder tài khoản admin
+        User::updateOrCreate(
+            ['email' => 'admin@shop.com'],
+            [
+                'name' => 'admin',
+                'password' => bcrypt('1999'),
+            ]
+        );
     }
 }
