@@ -99,6 +99,7 @@
                         <div class="col-md-6 mb-3">
                             <label for="customer_phone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="customer_phone" name="customer_phone" required>
+                            <div id="customer-info-hint" class="mt-2"></div>
                         </div>
                     </div>
                 </div>
@@ -141,18 +142,33 @@
                     <!-- Tiền cọc -->
                     <div class="mb-3" id="deposit_money_group">
                         <label for="deposit_amount_display" class="form-label">Số tiền cọc</label>
-                        <div class="input-group">
+                        <div class="input-group mb-2">
                             <input type="text" class="form-control" id="deposit_amount_display" value="0">
                             <input type="hidden" name="deposit_amount" id="deposit_amount_hidden" value="0">
                             <span class="input-group-text">VNĐ</span>
                         </div>
                         <small class="form-text text-muted">Có thể chỉnh sửa giá cọc mặc định từ sản phẩm</small>
+                        <div class="mt-2">
+                            <label class="form-label mb-1">Hình thức thanh toán:</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="deposit_payment_method" id="deposit_momo" value="momo" checked>
+                                <label class="form-check-label" for="deposit_momo">Chuyển khoản Momo</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="deposit_payment_method" id="deposit_techcom" value="techcombank">
+                                <label class="form-check-label" for="deposit_techcom">Chuyển khoản Techcombank</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="deposit_payment_method" id="deposit_cash" value="cash">
+                                <label class="form-check-label" for="deposit_cash">Tiền mặt</label>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- CMND cọc -->
                     <div class="mb-3 d-none" id="deposit_idcard_group">
-                        <label for="deposit_note" class="form-label">Số căn cước công dân</label>
-                        <input type="text" class="form-control" id="deposit_note" name="deposit_note" placeholder="Nhập số căn cước">
+                        <label for="deposit_note" class="form-label">Tên căn cước công dân</label>
+                        <input type="text" class="form-control" id="deposit_note" name="deposit_note" placeholder="Nhập tên căn cước">
                     </div>
                     
                     <!-- Tổng tiền phải trả -->
@@ -192,6 +208,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const clearSearchBtn = document.getElementById('clearSearch');
     const rentalDateInput = document.getElementById('rental_date');
     const returnDateInput = document.getElementById('expected_return_date');
+    const customerPhoneInput = document.getElementById('customer_phone');
+    const customerNameInput = document.getElementById('customer_name');
+    const customerInfoHint = document.getElementById('customer-info-hint');
+    let lastPhone = '';
 
     let cart = []; // Array to store product objects in the cart
     let debounceTimeout;
@@ -436,6 +456,26 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             alert('Vui lòng thêm ít nhất một sản phẩm vào đơn thuê.');
         }
+    });
+
+    customerPhoneInput.addEventListener('input', function() {
+        const phone = this.value.trim();
+        if (phone.length < 6) {
+            customerInfoHint.innerHTML = '';
+            return;
+        }
+        if (phone === lastPhone) return;
+        lastPhone = phone;
+        fetch(`/customers/info?phone=${encodeURIComponent(phone)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.exists) {
+                    customerNameInput.value = data.name;
+                    customerInfoHint.innerHTML = `<span class='text-success'><i class='fas fa-user-check me-1'></i>Khách quen: <b>${data.name}</b> - Đã thuê <b>${data.rental_count}</b> lần</span>`;
+                } else {
+                    customerInfoHint.innerHTML = `<span class='text-muted'><i class='fas fa-user-plus me-1'></i>Khách mới, chưa từng thuê</span>`;
+                }
+            });
     });
 });
 </script>

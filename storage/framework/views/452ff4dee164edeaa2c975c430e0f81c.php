@@ -1,6 +1,6 @@
 
 
-<?php $__env->startSection('title', 'Dashboard - Quản lý Shop Cho Thuê'); ?>
+<?php $__env->startSection('title', 'HOME - AURIS'); ?>
 
 <?php $__env->startSection('page-title', 'Dashboard'); ?>
 

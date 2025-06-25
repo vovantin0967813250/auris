@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard - Quản lý Shop Cho Thuê')
+@section('title', 'HOME - AURIS')
 
 @section('page-title', 'Dashboard')
 

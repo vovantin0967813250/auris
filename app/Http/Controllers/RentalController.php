@@ -91,6 +91,7 @@ class RentalController extends Controller
                 'rental_fee' => $validated['rental_fee'],
                 'deposit_amount' => $depositAmount,
                 'deposit_type' => $depositType,
+                'deposit_payment_method' => $request->input('deposit_payment_method'),
                 'deposit_note' => $depositNote,
                 'total_paid' => $totalPaid,
                 'refund_amount' => $depositAmount, // Số tiền sẽ hoàn lại
@@ -291,5 +292,22 @@ class RentalController extends Controller
             $totalAdditionalFee += $dailyFee;
         }
         return $totalAdditionalFee;
+    }
+
+    // API: Lấy thông tin khách hàng theo số điện thoại
+    public function getCustomerInfo(Request $request)
+    {
+        $phone = $request->get('phone');
+        $customer = \App\Models\Customer::where('phone', $phone)->first();
+        if (!$customer) {
+            return response()->json(['exists' => false]);
+        }
+        $rentalCount = $customer->rentals()->count();
+        return response()->json([
+            'exists' => true,
+            'name' => $customer->name,
+            'phone' => $customer->phone,
+            'rental_count' => $rentalCount
+        ]);
     }
 } 

@@ -17,12 +17,19 @@ Route::get('products/search/code', [ProductController::class, 'searchByCode'])->
 // Rentals management
 Route::get('rentals/history', [RentalController::class, 'history'])->name('rentals.history');
 Route::get('rentals/product/info', [RentalController::class, 'getProductInfo'])->name('rentals.getProductInfo');
+Route::get('customers/info', [RentalController::class, 'getCustomerInfo'])->name('customers.info');
 Route::resource('rentals', RentalController::class)->except(['edit', 'update', 'destroy']);
 Route::post('rentals/{rental}/return', [RentalController::class, 'return'])->name('rentals.return');
 Route::post('rentals/{rental}/extend', [RentalController::class, 'extend'])->name('rentals.extend');
 
 // Reports
 Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+
+// Notes
+Route::get('notes', [\App\Http\Controllers\NoteController::class, 'index'])->name('notes.index');
+Route::post('notes', [\App\Http\Controllers\NoteController::class, 'store'])->name('notes.store');
+Route::get('notes/{note}/edit', [\App\Http\Controllers\NoteController::class, 'edit'])->name('notes.edit');
+Route::post('notes/{note}', [\App\Http\Controllers\NoteController::class, 'update'])->name('notes.update');
 
 // Auth routes
 Route::get('login', [\App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])->name('login');

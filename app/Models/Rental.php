@@ -20,6 +20,7 @@ class Rental extends Model
         'rental_fee',           // Tiền thuê
         'deposit_amount',       // Tiền cọc
         'deposit_type',         // Loại cọc (money/idcard)
+        'deposit_payment_method', // Hình thức thanh toán cọc
         'deposit_note',         // Ghi chú về cọc
         'total_paid',           // Tổng tiền khách đã trả
         'refund_amount',        // Số tiền hoàn lại

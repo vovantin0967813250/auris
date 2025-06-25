@@ -151,6 +151,12 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('notes.*') ? 'active' : '' }}" href="{{ route('notes.index') }}">
+                        <i class="fas fa-sticky-note fa-fw me-2"></i>
+                        Ghi chú
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('reports.index') ? 'active' : '' }}" href="{{ route('reports.index') }}">
                         <i class="fas fa-chart-bar fa-fw me-2"></i>
                         Báo cáo thống kê

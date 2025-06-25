@@ -119,7 +119,8 @@
                         <th>Ngày thuê</th>
                         <th>Ngày trả dự kiến</th>
                         <th>Tiền thuê</th>
-                        <th>Cọc</th>
+                        <th>Hình thức cọc</th>
+                        <th>Hình thức thanh toán</th>
                         <th>Tổng trả</th>
                         <th>Trạng thái</th>
                         <th>Thao tác</th>
@@ -163,6 +164,17 @@
                                 <span class="badge bg-secondary">CCCD: <?php echo e($rental->deposit_note); ?></span>
                             <?php else: ?>
                                 <span class="text-muted">Không có</span>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <?php if($rental->deposit_payment_method === 'momo'): ?>
+                                <span class="badge bg-warning text-dark">Momo</span>
+                            <?php elseif($rental->deposit_payment_method === 'techcombank'): ?>
+                                <span class="badge bg-primary">Techcombank</span>
+                            <?php elseif($rental->deposit_payment_method === 'cash'): ?>
+                                <span class="badge bg-success">Tiền mặt</span>
+                            <?php else: ?>
+                                <span class="text-muted">-</span>
                             <?php endif; ?>
                         </td>
                         <td>
