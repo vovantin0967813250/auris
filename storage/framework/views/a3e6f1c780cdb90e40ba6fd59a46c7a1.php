@@ -211,22 +211,14 @@
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const sidebar = document.getElementById("sidebar");
-            const sidebarToggle = document.getElementById("sidebarToggle");
-            const sidebarCloseBtn = document.getElementById("sidebarCloseBtn");
+         $(document).ready(function() {
+            $("#sidebarToggle").click(function() {
+                $("#sidebar").toggleClass("active");
+            });
 
-            if (sidebarToggle) {
-                sidebarToggle.addEventListener("click", function() {
-                    sidebar.classList.toggle("active");
-                });
-            }
-
-            if (sidebarCloseBtn) {
-                sidebarCloseBtn.addEventListener("click", function() {
-                    sidebar.classList.remove("active");
-                });
-            }
+            $("#sidebarCloseBtn").click(function() {
+                $("#sidebar").removeClass("active");
+            });
         });
     </script>
     <?php echo $__env->yieldPushContent('scripts'); ?>
