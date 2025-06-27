@@ -245,13 +245,20 @@ class RentalController extends Controller
             $oldExpectedReturnDate = $rental->expected_return_date->copy();
             $newExpectedReturnDate = $oldExpectedReturnDate->addDays($extensionDays);
 
-            // Tính tiền thuê bổ sung theo logic hiện tại
+            // Tính tiền thuê bổ sung
             $additionalRentalFee = $this->calculateAdditionalRentalFee($rental, $extensionDays);
 
             // Cập nhật đơn thuê
             $rental->expected_return_date = $newExpectedReturnDate;
             $rental->rental_fee += $additionalRentalFee;
             $rental->total_paid += $additionalRentalFee;
+
+            // Nếu là cọc tiền thì trừ vào refund_amount
+            if ($rental->hasMoneyDeposit()) {
+                $rental->refund_amount = max(0, $rental->refund_amount - $additionalRentalFee);
+            }
+            // Nếu là cọc căn cước thì không trừ vào refund_amount, chỉ cộng rental_fee
+
             $rental->save();
 
             DB::commit();
@@ -269,28 +276,21 @@ class RentalController extends Controller
     private function calculateAdditionalRentalFee(Rental $rental, int $extensionDays)
     {
         $totalAdditionalFee = 0;
-        $currentRentalDays = $rental->rental_date->diffInDays($rental->expected_return_date);
         $productCount = $rental->items->count();
 
-        // Tính tiền gia hạn chỉ cho các ngày mới, nhân với số lượng sản phẩm
+        // Tính tiền gia hạn chỉ cho các ngày mới
+        // Ngày đầu tiên gia hạn: 20.000 VNĐ
+        // Các ngày sau: 10.000 VNĐ/ngày
         for ($day = 1; $day <= $extensionDays; $day++) {
-            $dayNumber = $currentRentalDays + $day;
-            $dailyFee = 0;
-
-            // Lấy giá thuê trung bình của từng sản phẩm (giả sử các sản phẩm có giá giống nhau)
-            // Nếu khác nhau, cần tính riêng từng sản phẩm
-            foreach ($rental->items as $item) {
-                $basePrice = $item->product->rental_price;
-                if ($dayNumber == 1) {
-                    $dailyFee += $basePrice;
-                } elseif ($dayNumber == 2) {
-                    $dailyFee += $basePrice + 20000;
-                } else {
-                    $dailyFee += $basePrice + 20000 + (($dayNumber - 2) * 10000);
-                }
+            if ($day == 1) {
+                // Ngày đầu tiên gia hạn: 20.000 VNĐ
+                $totalAdditionalFee += 20000 * $productCount;
+            } else {
+                // Các ngày sau: 10.000 VNĐ/ngày
+                $totalAdditionalFee += 10000 * $productCount;
             }
-            $totalAdditionalFee += $dailyFee;
         }
+        
         return $totalAdditionalFee;
     }
 

@@ -171,8 +171,8 @@
                     <div class="alert alert-warning">
                         <small>
                             <strong>Lưu ý:</strong> Tiền thuê bổ sung sẽ được tính theo quy tắc:<br>
-                            • Ngày thứ 2: +20.000 VNĐ<br>
-                            • Từ ngày thứ 3: +10.000 VNĐ/ngày
+                            • Ngày đầu tiên gia hạn: +20.000 VNĐ<br>
+                            • Các ngày sau: +10.000 VNĐ/ngày
                         </small>
                     </div>
                 </div>
@@ -195,9 +195,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const extensionDaysSelect = document.getElementById('extension_days');
     const modalBody = document.querySelector('#extendModal .modal-body');
-    // Lấy giá thuê từng sản phẩm từ backend
-    const productPrices = @json($rental->products->pluck('rental_price'));
-    const currentRentalDays = {{ $rental->rental_date->diffInDays($rental->expected_return_date) }};
+    const productCount = {{ $rental->products->count() }};
     const currentRentalFee = {{ $rental->rental_fee }};
 
     if (extensionDaysSelect) {
@@ -205,20 +203,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const days = parseInt(this.value);
             if (days > 0) {
                 let estimatedAdditionalFee = 0;
+                
+                // Tính tiền gia hạn theo quy tắc mới:
+                // Ngày đầu tiên gia hạn: 20.000 VNĐ
+                // Các ngày sau: 10.000 VNĐ/ngày
                 for (let day = 1; day <= days; day++) {
-                    const dayNumber = currentRentalDays + day;
-                    productPrices.forEach(function(basePrice) {
-                        let dailyFee = 0;
-                        if (dayNumber === 1) {
-                            dailyFee = basePrice;
-                        } else if (dayNumber === 2) {
-                            dailyFee = 20000;
-                        } else {
-                            dailyFee = 10000;
-                        }
-                        estimatedAdditionalFee += dailyFee;
-                    });
+                    if (day === 1) {
+                        // Ngày đầu tiên gia hạn: 20.000 VNĐ
+                        estimatedAdditionalFee += 20000 * productCount;
+                    } else {
+                        // Các ngày sau: 10.000 VNĐ/ngày
+                        estimatedAdditionalFee += 10000 * productCount;
+                    }
                 }
+                
                 // Hiển thị thông tin ước tính
                 const newReturnDate = new Date('{{ $rental->expected_return_date->format("Y-m-d") }}');
                 newReturnDate.setDate(newReturnDate.getDate() + days);

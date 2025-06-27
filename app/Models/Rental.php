@@ -64,9 +64,9 @@ class Rental extends Model
     // Check if rental is overdue
     public function isOverdue(): bool
     {
-        return $this->status === 'active' &&
-               $this->expected_return_date->lt(today()) &&
-               !$this->actual_return_date;
+        return $this->status === 'active'
+            && $this->expected_return_date->lt(today())
+            && !$this->actual_return_date;
     }
 
     // Calculate overdue days
@@ -134,7 +134,7 @@ class Rental extends Model
     public function scopeOverdue($query)
     {
         return $query->where('status', 'active')
-                    ->where('expected_return_date', '<', now());
+                     ->where('expected_return_date', '<', today());
     }
 
     // Số ngày trễ hạn (nếu có)
